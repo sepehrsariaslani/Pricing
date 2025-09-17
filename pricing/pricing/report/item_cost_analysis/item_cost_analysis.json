@@ -1,0 +1,46 @@
+{
+    "actions": [],
+    "creation": "2024-03-21 10:00:00.000000",
+    "doctype": "Report",
+    "filters": [
+        {
+            "fieldname": "price_list",
+            "fieldtype": "Link",
+            "label": "Price List",
+            "options": "Auto Price List"
+        },
+        {
+            "fieldname": "item_code",
+            "fieldtype": "Link",
+            "label": "Item",
+            "options": "Item"
+        },
+        {
+            "fieldname": "from_date",
+            "fieldtype": "Date",
+            "label": "From Date"
+        },
+        {
+            "fieldname": "to_date",
+            "fieldtype": "Date",
+            "label": "To Date"
+        }
+    ],
+    "idx": 0,
+    "is_standard": "No",
+    "json": "{}",
+    "modified": "2024-03-21 10:00:00.000000",
+    "modified_by": "Administrator",
+    "module": "Pricing",
+    "name": "Item Cost Analysis",
+    "owner": "Administrator",
+    "report_type": "Script Report",
+    "roles": [
+        {
+            "role": "System Manager"
+        },
+        {
+            "role": "Accounts Manager"
+        }
+    ]
+} 

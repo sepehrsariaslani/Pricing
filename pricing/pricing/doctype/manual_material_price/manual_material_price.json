@@ -1,0 +1,74 @@
+{
+    "actions": [],
+    "allow_rename": 1,
+    "creation": "2024-03-19 10:00:00.000000",
+    "doctype": "DocType",
+    "editable_grid": 1,
+    "engine": "InnoDB",
+    "field_order": [
+        "item_code",
+        "item_name",
+        "manual_price",
+        "uom",
+        "effective_date",
+        "notes"
+    ],
+    "fields": [
+        {
+            "fieldname": "item_code",
+            "fieldtype": "Link",
+            "in_list_view": 1,
+            "label": "کد کالا",
+            "options": "Item",
+            "reqd": 1
+        },
+        {
+            "fieldname": "item_name",
+            "fieldtype": "Data",
+            "label": "نام کالا",
+            "read_only": 1,
+            "fetch_from": "item_code.item_name"
+        },
+        {
+            "fieldname": "manual_price",
+            "fieldtype": "Currency",
+            "in_list_view": 1,
+            "label": "قیمت دستی",
+            "reqd": 1,
+            "description": "قیمت دستی برای این ماده اولیه"
+        },
+        {
+            "fieldname": "uom",
+            "fieldtype": "Link",
+            "label": "واحد اندازه‌گیری",
+            "options": "UOM",
+            "fetch_from": "item_code.stock_uom"
+        },
+        {
+            "fieldname": "effective_date",
+            "fieldtype": "Date",
+            "label": "تاریخ اعمال",
+            "default": "Today",
+            "description": "تاریخی که این قیمت از آن اعمال می‌شود"
+        },
+        {
+            "fieldname": "notes",
+            "fieldtype": "Small Text",
+            "label": "یادداشت‌ها",
+            "description": "توضیحات اضافی در مورد این قیمت دستی"
+        }
+    ],
+    "index_web_pages_for_search": 1,
+    "istable": 1,
+    "links": [],
+    "modified": "2024-03-19 10:00:00.000000",
+    "modified_by": "Administrator",
+    "module": "Pricing",
+    "name": "Manual Material Price",
+    "owner": "Administrator",
+    "permissions": [],
+    "sort_field": "modified",
+    "sort_order": "DESC",
+    "states": [],
+    "track_changes": 1
+}

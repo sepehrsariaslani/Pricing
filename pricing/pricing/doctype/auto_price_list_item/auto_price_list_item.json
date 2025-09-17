@@ -1,0 +1,317 @@
+{
+    "actions": [],
+    "allow_rename": 1,
+    "creation": "2024-03-19 10:00:00.000000",
+    "doctype": "DocType",
+    "editable_grid": 1,
+    "engine": "InnoDB",
+    "field_order": [
+        "item_code",
+        "item_name",
+        "total_cost",
+        "final_selected_price",
+        "item_group",
+        "brand",
+        "raw_material_cost",
+        "electricity_cost",
+        "consumable_cost",
+        "rent_cost",
+        "labor_cost",
+        "operation_cost",
+        "subcontracting_cost",
+        "overhead_cost",
+        "selling_price",
+        "profit_amount",
+        "comparison_section",
+        "current_market_price",
+        "profit_loss_status",
+        "profit_loss_amount",
+        "commission_section",
+        "commission_amount",
+        "net_profit_after_commission",
+        "final_price_with_markup",
+        "required_markup_amount",
+        "price_calculation_breakdown",
+        "detailed_breakdown_section",
+        "base_cost_amount",
+        "profit_added_amount",
+        "interest_added_amount",
+        "commission_deduction_amount",
+        "markup_added_amount",
+        "rounding_adjustment_amount",
+        "step_by_step_calculation",
+        "installment_section",
+        "down_payment_amount",
+        "monthly_payment",
+        "total_installment_amount",
+        "total_interest"
+    ],
+    "fields": [
+        {
+            "fieldname": "item_code",
+            "fieldtype": "Link",
+            "in_list_view": 1,
+            "label": "کد کالا",
+            "options": "Item",
+            "reqd": 1
+        },
+        {
+            "fieldname": "item_name",
+            "fieldtype": "Data",
+            "in_list_view": 1,
+            "label": "نام کالا",
+            "read_only": 1
+        },
+        {
+            "fieldname": "item_group",
+            "fieldtype": "Link",
+            "label": "گروه کالا",
+            "options": "Item Group",
+            "read_only": 1
+        },
+        {
+            "fieldname": "brand",
+            "fieldtype": "Link",
+            "label": "برند",
+            "options": "Brand",
+            "read_only": 1
+        },
+        {
+            "fieldname": "raw_material_cost",
+            "fieldtype": "Currency",
+            "label": "هزینه مواد اولیه",
+            "read_only": 1
+        },
+        {
+            "fieldname": "electricity_cost",
+            "fieldtype": "Currency",
+            "label": "هزینه برق",
+            "read_only": 1
+        },
+        {
+            "fieldname": "consumable_cost",
+            "fieldtype": "Currency",
+            "label": "هزینه مصرفی",
+            "read_only": 1
+        },
+        {
+            "fieldname": "rent_cost",
+            "fieldtype": "Currency",
+            "label": "هزینه اجاره",
+            "read_only": 1
+        },
+        {
+            "fieldname": "labor_cost",
+            "fieldtype": "Currency",
+            "label": "هزینه کارگر",
+            "read_only": 1
+        },
+        {
+            "fieldname": "operation_cost",
+            "fieldtype": "Currency",
+            "label": "کل هزینه عملیات",
+            "read_only": 1
+        },
+        {
+            "fieldname": "subcontracting_cost",
+            "fieldtype": "Currency",
+            "label": "هزینه پیمانکاری",
+            "read_only": 1,
+            "description": "هزینه کارهای پیمانکاری مثل رنگ‌کاری، جوشکاری و غیره"
+        },
+        {
+            "fieldname": "overhead_cost",
+            "fieldtype": "Currency",
+            "label": "هزینه سربار",
+            "read_only": 1
+        },
+        {
+            "fieldname": "total_cost",
+            "fieldtype": "Currency",
+            "label": "هزینه کل",
+            "read_only": 1
+        },
+        {
+            "fieldname": "selling_price",
+            "fieldtype": "Currency",
+            "label": "قیمت فروش",
+            "read_only": 1
+        },
+        {
+            "fieldname": "profit_amount",
+            "fieldtype": "Currency",
+            "label": "مبلغ سود",
+            "read_only": 1
+        },
+        {
+            "fieldname": "comparison_section",
+            "fieldtype": "Section Break",
+            "label": "مقایسه و قیمت نهایی",
+            "collapsible": 1
+        },
+        {
+            "fieldname": "current_market_price",
+            "fieldtype": "Currency",
+            "label": "قیمت فعلی بازار",
+            "read_only": 1,
+            "description": "قیمت فعلی این کالا در لیست قیمت مقایسه"
+        },
+        {
+            "fieldname": "profit_loss_status",
+            "fieldtype": "Data",
+            "label": "وضعیت سود/ضرر",
+            "read_only": 1,
+            "description": "نشان‌دهنده سودآوری یا ضررآوری فروش با قیمت فعلی"
+        },
+        {
+            "fieldname": "profit_loss_amount",
+            "fieldtype": "Currency",
+            "label": "مبلغ سود/ضرر",
+            "read_only": 1,
+            "description": "مبلغ سود یا ضرر نسبت به قیمت فعلی بازار"
+        },
+        {
+            "fieldname": "final_selected_price",
+            "fieldtype": "Currency",
+            "label": "قیمت نهایی انتخاب شده",
+            "read_only": 1,
+            "description": "قیمت نهایی بر اساس نوع قیمت انتخاب شده و رند شده"
+        },
+        {
+            "fieldname": "commission_section",
+            "fieldtype": "Section Break",
+            "label": "جزئیات کمیسیون و افزایش قیمت",
+            "collapsible": 1
+        },
+        {
+            "fieldname": "commission_amount",
+            "fieldtype": "Currency",
+            "label": "مبلغ کمیسیون",
+            "read_only": 1
+        },
+        {
+            "fieldname": "net_profit_after_commission",
+            "fieldtype": "Currency",
+            "label": "سود خالص بعد از کمیسیون",
+            "read_only": 1
+        },
+        {
+            "fieldname": "final_price_with_markup",
+            "fieldtype": "Currency",
+            "label": "قیمت نهایی (با افزایش)",
+            "read_only": 1
+        },
+        {
+            "fieldname": "required_markup_amount",
+            "fieldtype": "Currency",
+            "label": "مبلغ افزایش مورد نیاز",
+            "read_only": 1
+        },
+        {
+            "fieldname": "price_calculation_breakdown",
+            "fieldtype": "Long Text",
+            "label": "جزئیات محاسبه قیمت",
+            "read_only": 1,
+            "description": "توضیح مرحله به مرحله محاسبه قیمت نهایی"
+        },
+        {
+            "fieldname": "detailed_breakdown_section",
+            "fieldtype": "Section Break",
+            "label": "تفکیک دقیق مبالغ اضافه شده",
+            "collapsible": 1
+        },
+        {
+            "fieldname": "base_cost_amount",
+            "fieldtype": "Currency",
+            "label": "مبلغ پایه (هزینه کل)",
+            "read_only": 1,
+            "description": "هزینه کل تولید بدون سود"
+        },
+        {
+            "fieldname": "profit_added_amount",
+            "fieldtype": "Currency",
+            "label": "مبلغ سود اضافه شده",
+            "read_only": 1,
+            "description": "مبلغ سودی که بر اساس حاشیه سود اضافه شده"
+        },
+        {
+            "fieldname": "interest_added_amount",
+            "fieldtype": "Currency",
+            "label": "مبلغ بهره اضافه شده",
+            "read_only": 1,
+            "description": "مبلغ بهره‌ای که برای پرداخت قسطی اضافه شده"
+        },
+        {
+            "fieldname": "commission_deduction_amount",
+            "fieldtype": "Currency",
+            "label": "مبلغ کسر کمیسیون",
+            "read_only": 1,
+            "description": "مبلغ کمیسیونی که از سود کسر می‌شود"
+        },
+        {
+            "fieldname": "markup_added_amount",
+            "fieldtype": "Currency",
+            "label": "مبلغ افزایش برای تخفیف",
+            "read_only": 1,
+            "description": "مبلغی که برای امکان دادن تخفیف به قیمت اضافه شده"
+        },
+        {
+            "fieldname": "rounding_adjustment_amount",
+            "fieldtype": "Currency",
+            "label": "مبلغ تعدیل رند کردن",
+            "read_only": 1,
+            "description": "مبلغی که بر اثر رند کردن قیمت اضافه شده"
+        },
+        {
+            "fieldname": "step_by_step_calculation",
+            "fieldtype": "Long Text",
+            "label": "محاسبه گام به گام",
+            "read_only": 1,
+            "description": "نمایش دقیق هر مرحله محاسبه با مبالغ"
+        },
+        {
+            "fieldname": "installment_section",
+            "fieldtype": "Section Break",
+            "label": "جزئیات قسط",
+            "collapsible": 1
+        },
+        {
+            "fieldname": "down_payment_amount",
+            "fieldtype": "Currency",
+            "label": "مبلغ پیش‌پرداخت",
+            "read_only": 1
+        },
+        {
+            "fieldname": "monthly_payment",
+            "fieldtype": "Currency",
+            "label": "پرداخت ماهانه",
+            "read_only": 1
+        },
+        {
+            "fieldname": "total_installment_amount",
+            "fieldtype": "Currency",
+            "label": "مبلغ کل (با بهره)",
+            "read_only": 1
+        },
+        {
+            "fieldname": "total_interest",
+            "fieldtype": "Currency",
+            "label": "کل بهره",
+            "read_only": 1
+        }
+    ],
+    "index_web_pages_for_search": 1,
+    "istable": 1,
+    "links": [],
+    "modified": "2024-03-19 10:00:00.000000",
+    "modified_by": "Administrator",
+    "module": "Pricing",
+    "name": "Auto Price List Item",
+    "naming_rule": "By fieldname",
+    "owner": "Administrator",
+    "permissions": [],
+    "sort_field": "modified",
+    "sort_order": "DESC",
+    "states": [],
+    "track_changes": 1
+} 

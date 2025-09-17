@@ -1,0 +1,53 @@
+{
+    "actions": [],
+    "allow_rename": 1,
+    "creation": "2024-03-19 10:00:00.000000",
+    "doctype": "DocType",
+    "editable_grid": 1,
+    "engine": "InnoDB",
+    "field_order": [
+        "step_order",
+        "step_type",
+        "description"
+    ],
+    "fields": [
+        {
+            "fieldname": "step_order",
+            "fieldtype": "Int",
+            "in_list_view": 1,
+            "label": "ترتیب",
+            "reqd": 1,
+            "description": "ترتیب اعمال این مرحله"
+        },
+        {
+            "fieldname": "step_type",
+            "fieldtype": "Select",
+            "in_list_view": 1,
+            "label": "نوع مرحله",
+            "options": "سود\nافزایش قیمت\nکمیسیون\nبهره قسطی\nبهره تأخیری\nتخفیف\nرند کردن",
+            "reqd": 1,
+            "description": "نوع عامل قیمت‌گذاری"
+        },
+        {
+            "fieldname": "description",
+            "fieldtype": "Data",
+            "label": "توضیحات",
+            "read_only": 1,
+            "description": "توضیح خودکار مرحله"
+        }
+    ],
+    "index_web_pages_for_search": 1,
+    "istable": 1,
+    "links": [],
+    "modified": "2024-03-19 10:00:00.000000",
+    "modified_by": "Administrator",
+    "module": "Pricing",
+    "name": "Auto Price List Pricing Step",
+    "naming_rule": "By fieldname",
+    "owner": "Administrator",
+    "permissions": [],
+    "sort_field": "step_order",
+    "sort_order": "ASC",
+    "states": [],
+    "track_changes": 1
+}

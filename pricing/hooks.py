@@ -43,7 +43,9 @@ app_license = "mit"
 # page_js = {"page" : "public/js/file.js"}
 
 # include js in doctype views
-# doctype_js = {"doctype" : "public/js/doctype.js"}
+doctype_js = {
+    "Auto Price List": "public/js/auto_price_list.js"
+}
 # doctype_list_js = {"doctype" : "public/js/doctype_list.js"}
 # doctype_tree_js = {"doctype" : "public/js/doctype_tree.js"}
 # doctype_calendar_js = {"doctype" : "public/js/doctype_calendar.js"}
@@ -148,23 +150,18 @@ app_license = "mit"
 # Scheduled Tasks
 # ---------------
 
-# scheduler_events = {
-# 	"all": [
-# 		"pricing.tasks.all"
-# 	],
-# 	"daily": [
-# 		"pricing.tasks.daily"
-# 	],
-# 	"hourly": [
-# 		"pricing.tasks.hourly"
-# 	],
-# 	"weekly": [
-# 		"pricing.tasks.weekly"
-# 	],
-# 	"monthly": [
-# 		"pricing.tasks.monthly"
-# 	],
-# }
+scheduler_events = {
+	"daily": [
+		"pricing.pricing.doctype.competitor_analysis.scheduler.run_scheduled_competitor_crawls",
+		"pricing.pricing.doctype.competitor_analysis.scheduler.check_competitor_price_alerts"
+	],
+	"hourly": [
+		"pricing.pricing.doctype.competitor_analysis.scheduler.update_competitor_seo_metrics"
+	],
+	"weekly": [
+		"pricing.pricing.doctype.competitor_analysis.scheduler.generate_weekly_competitor_report"
+	]
+}
 
 # Testing
 # -------

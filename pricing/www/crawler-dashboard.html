@@ -1,0 +1,759 @@
+{% extends "templates/web.html" %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block page_content %}
+<div class="dashboard-container">
+    <style>
+        .dashboard-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .dashboard-header {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+            padding: 30px;
+            border-radius: 15px;
+            text-align: center;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+        
+        .dashboard-header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            font-weight: 700;
+        }
+        
+        .controls-section {
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            margin-bottom: 25px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.08);
+        }
+        
+        .competitor-selector {
+            margin-bottom: 20px;
+        }
+        
+        .competitor-selector label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #333;
+        }
+        
+        .competitor-selector select {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e1e8ed;
+            border-radius: 10px;
+            font-size: 16px;
+            background: white;
+            transition: border-color 0.3s ease;
+        }
+        
+        .competitor-selector select:focus {
+            outline: none;
+            border-color: #4facfe;
+        }
+        
+        .controls-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .btn {
+            padding: 12px 20px;
+            border: none;
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: center;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        
+        .btn-success {
+            background: linear-gradient(135deg, #56ab2f 0%, #a8e6cf 100%);
+            color: white;
+        }
+        
+        .btn-warning {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+        }
+        
+        .btn-danger {
+            background: linear-gradient(135deg, #fc466b 0%, #3f5efb 100%);
+            color: white;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+        }
+        
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .status-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .status-card {
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            text-align: center;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.08);
+            border: 1px solid #f0f0f0;
+        }
+        
+        .status-card h3 {
+            font-size: 1.1em;
+            margin-bottom: 15px;
+            color: #666;
+            font-weight: 600;
+        }
+        
+        .status-card .value {
+            font-size: 2.2em;
+            font-weight: bold;
+            color: #2c3e50;
+            margin-bottom: 5px;
+        }
+        
+        .status-indicator {
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            margin-left: 8px;
+        }
+        
+        .status-pending { background: #f39c12; }
+        .status-discovering { background: #3498db; }
+        .status-crawling { background: #9b59b6; }
+        .status-processing { background: #e67e22; }
+        .status-completed { background: #27ae60; }
+        .status-failed { background: #e74c3c; }
+        .status-paused { background: #95a5a6; }
+        
+        .progress-section {
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            margin-bottom: 25px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.08);
+        }
+        
+        .progress-section h3 {
+            margin-bottom: 20px;
+            color: #333;
+            font-weight: 600;
+        }
+        
+        .progress-bar {
+            width: 100%;
+            height: 20px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            overflow: hidden;
+            margin-bottom: 15px;
+            border: 1px solid #e9ecef;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #4facfe 0%, #00f2fe 100%);
+            transition: width 0.5s ease;
+            border-radius: 10px;
+        }
+        
+        .progress-text {
+            text-align: center;
+            font-weight: 600;
+            color: #495057;
+            font-size: 16px;
+        }
+        
+        .logs-section {
+            background: #2c3e50;
+            color: #ecf0f1;
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.08);
+        }
+        
+        .logs-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .logs-header h3 {
+            color: #ecf0f1;
+            margin: 0;
+        }
+        
+        .logs-container {
+            background: #34495e;
+            padding: 20px;
+            border-radius: 10px;
+            max-height: 400px;
+            overflow-y: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            line-height: 1.6;
+            border: 1px solid #4a6741;
+        }
+        
+        .log-entry {
+            margin-bottom: 8px;
+            padding: 8px 12px;
+            border-radius: 5px;
+            background: rgba(255,255,255,0.05);
+            border-left: 3px solid transparent;
+        }
+        
+        .log-entry.error {
+            background: rgba(231, 76, 60, 0.15);
+            border-left-color: #e74c3c;
+        }
+        
+        .log-entry.success {
+            background: rgba(46, 204, 113, 0.15);
+            border-left-color: #2ecc71;
+        }
+        
+        .log-entry.warning {
+            background: rgba(241, 196, 15, 0.15);
+            border-left-color: #f1c40f;
+        }
+        
+        .current-url {
+            background: white;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 25px;
+            box-shadow: 0 3px 15px rgba(0,0,0,0.05);
+            border: 1px solid #f0f0f0;
+        }
+        
+        .current-url h4 {
+            margin-bottom: 10px;
+            color: #333;
+            font-size: 14px;
+            font-weight: 600;
+        }
+        
+        .current-url .url {
+            color: #666;
+            font-size: 13px;
+            word-break: break-all;
+            background: #f8f9fa;
+            padding: 8px 12px;
+            border-radius: 5px;
+        }
+        
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.6; }
+            100% { opacity: 1; }
+        }
+        
+        .loading {
+            animation: pulse 2s infinite;
+        }
+        
+        .alert {
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            border: 1px solid transparent;
+        }
+        
+        .alert-info {
+            background: #d1ecf1;
+            border-color: #bee5eb;
+            color: #0c5460;
+        }
+        
+        .alert-success {
+            background: #d4edda;
+            border-color: #c3e6cb;
+            color: #155724;
+        }
+        
+        .alert-warning {
+            background: #fff3cd;
+            border-color: #ffeaa7;
+            color: #856404;
+        }
+        
+        .alert-danger {
+            background: #f8d7da;
+            border-color: #f5c6cb;
+            color: #721c24;
+        }
+    </style>
+
+    <div class="dashboard-header">
+        <h1>🕷️ داشبورد کراولر پیشرفته</h1>
+        <p>نظارت و کنترل کرال محصولات رقبا</p>
+    </div>
+
+    <div class="controls-section">
+        <div class="competitor-selector">
+            <label for="competitorSelect">انتخاب رقیب:</label>
+            <select id="competitorSelect">
+                <option value="">انتخاب کنید...</option>
+                {% for competitor in competitors %}
+                <option value="{{ competitor.name }}">
+                    {{ competitor.competitor_name or competitor.name }}
+                    {% if competitor.website_url %}
+                    - {{ competitor.website_url }}
+                    {% endif %}
+                </option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="controls-grid">
+            <button class="btn btn-primary" onclick="startCrawl()" id="startBtn">
+                🚀 شروع کرال
+            </button>
+            <button class="btn btn-warning" onclick="pauseCrawl()" id="pauseBtn" disabled>
+                ⏸️ توقف موقت
+            </button>
+            <button class="btn btn-success" onclick="resumeCrawl()" id="resumeBtn" disabled>
+                ▶️ ادامه
+            </button>
+            <button class="btn btn-danger" onclick="stopCrawl()" id="stopBtn" disabled>
+                ⏹️ توقف کامل
+            </button>
+            <button class="btn btn-primary" onclick="refreshStatus()" id="refreshBtn">
+                🔄 به‌روزرسانی
+            </button>
+        </div>
+    </div>
+
+    <div class="status-grid">
+        <div class="status-card">
+            <h3>وضعیت کرال</h3>
+            <div class="value" id="crawlStatus">
+                <span class="status-indicator status-pending"></span>
+                در انتظار
+            </div>
+        </div>
+        <div class="status-card">
+            <h3>محصولات کشف شده</h3>
+            <div class="value" id="discoveredCount">0</div>
+        </div>
+        <div class="status-card">
+            <h3>محصولات کرال شده</h3>
+            <div class="value" id="crawledCount">0</div>
+        </div>
+        <div class="status-card">
+            <h3>محصولات ذخیره شده</h3>
+            <div class="value" id="savedCount">0</div>
+        </div>
+    </div>
+
+    <div class="current-url" id="currentUrlSection" style="display: none;">
+        <h4>URL در حال پردازش:</h4>
+        <div class="url" id="currentUrl"></div>
+    </div>
+
+    <div class="progress-section">
+        <h3>پیشرفت کرال</h3>
+        <div class="progress-bar">
+            <div class="progress-fill" id="progressFill" style="width: 0%"></div>
+        </div>
+        <div class="progress-text" id="progressText">0%</div>
+    </div>
+
+    <div class="logs-section">
+        <div class="logs-header">
+            <h3>📋 لاگ‌های کرال</h3>
+            <button class="btn btn-primary" onclick="clearLogs()">پاک کردن</button>
+        </div>
+        <div class="logs-container" id="logsContainer">
+            <div class="log-entry">سیستم آماده است. لطفاً یک رقیب انتخاب کنید...</div>
+        </div>
+    </div>
+</div>
+
+<script>
+    let currentCompetitor = '';
+    let crawlStatus = 'pending';
+    
+    // تغییر رقیب
+    document.getElementById('competitorSelect').addEventListener('change', function() {
+        currentCompetitor = this.value;
+        if (currentCompetitor) {
+            addLogEntry(`رقیب انتخاب شد: ${this.options[this.selectedIndex].text}`, 'success');
+            refreshStatus();
+            setupRealtime();
+            updateButtonStates();
+        } else {
+            addLogEntry('لطفاً یک رقیب انتخاب کنید', 'warning');
+            resetDashboard();
+        }
+    });
+    
+    // راه‌اندازی real-time
+    function setupRealtime() {
+        if (!currentCompetitor) return;
+        
+        // لاگ‌های کرال
+        frappe.realtime.on('crawler_log', (data) => {
+            if (data.competitor === currentCompetitor) {
+                addLogEntry(data.message, data.level || 'info');
+                if (data.progress) {
+                    updateProgress(data.progress);
+                }
+            }
+        });
+        
+        // پیشرفت کرال
+        frappe.realtime.on('crawler_progress', (data) => {
+            updateProgress(data);
+            updateButtonStates();
+        });
+        
+        // تکمیل کرال
+        frappe.realtime.on('crawler_completed', (data) => {
+            addLogEntry('🎉 کرال با موفقیت تکمیل شد!', 'success');
+            crawlStatus = 'completed';
+            updateButtonStates();
+            refreshStatus();
+        });
+        
+        // pause/resume/stop events
+        frappe.realtime.on('crawler_paused', (data) => {
+            if (data.competitor === currentCompetitor) {
+                addLogEntry('⏸️ کرال متوقف شد', 'warning');
+                crawlStatus = 'paused';
+                updateButtonStates();
+            }
+        });
+        
+        frappe.realtime.on('crawler_resumed', (data) => {
+            if (data.competitor === currentCompetitor) {
+                addLogEntry('▶️ کرال ادامه یافت', 'success');
+                crawlStatus = 'crawling';
+                updateButtonStates();
+            }
+        });
+        
+        frappe.realtime.on('crawler_stopped', (data) => {
+            if (data.competitor === currentCompetitor) {
+                addLogEntry('⏹️ کرال متوقف شد', 'warning');
+                crawlStatus = 'pending';
+                updateButtonStates();
+            }
+        });
+    }
+    
+    // شروع کرال
+    async function startCrawl() {
+        if (!currentCompetitor) {
+            showAlert('لطفاً ابتدا یک رقیب انتخاب کنید', 'warning');
+            return;
+        }
+        
+        try {
+            document.getElementById('startBtn').disabled = true;
+            document.getElementById('startBtn').innerHTML = '🔄 در حال شروع...';
+            
+            const response = await frappe.call({
+                method: 'pricing.pricing.doctype.competitor_analysis.final_enhanced_crawler.start_final_crawler',
+                args: {
+                    competitor_name: currentCompetitor
+                }
+            });
+            
+            if (response.message.success) {
+                addLogEntry('🚀 کرال با موفقیت شروع شد', 'success');
+                crawlStatus = 'discovering';
+                updateButtonStates();
+            } else {
+                addLogEntry('❌ خطا در شروع کرال: ' + response.message.message, 'error');
+                document.getElementById('startBtn').disabled = false;
+                document.getElementById('startBtn').innerHTML = '🚀 شروع کرال';
+            }
+            
+        } catch (error) {
+            addLogEntry('❌ خطا در شروع کرال: ' + error.message, 'error');
+            document.getElementById('startBtn').disabled = false;
+            document.getElementById('startBtn').innerHTML = '🚀 شروع کرال';
+        }
+    }
+    
+    // توقف موقت کرال
+    async function pauseCrawl() {
+        if (!currentCompetitor) return;
+        
+        try {
+            const response = await frappe.call({
+                method: 'pricing.pricing.doctype.competitor_analysis.final_enhanced_crawler.pause_final_crawler',
+                args: {
+                    competitor_name: currentCompetitor
+                }
+            });
+            
+            if (response.message.success) {
+                addLogEntry('⏸️ درخواست توقف موقت ارسال شد', 'success');
+            }
+            
+        } catch (error) {
+            addLogEntry('❌ خطا در توقف کرال: ' + error.message, 'error');
+        }
+    }
+    
+    // ادامه کرال
+    async function resumeCrawl() {
+        if (!currentCompetitor) return;
+        
+        try {
+            const response = await frappe.call({
+                method: 'pricing.pricing.doctype.competitor_analysis.final_enhanced_crawler.resume_final_crawler',
+                args: {
+                    competitor_name: currentCompetitor
+                }
+            });
+            
+            if (response.message.success) {
+                addLogEntry('▶️ درخواست ادامه کرال ارسال شد', 'success');
+            }
+            
+        } catch (error) {
+            addLogEntry('❌ خطا در ادامه کرال: ' + error.message, 'error');
+        }
+    }
+    
+    // توقف کامل کرال
+    async function stopCrawl() {
+        if (!currentCompetitor) return;
+        
+        if (!confirm('آیا مطمئن هستید که می‌خواهید کرال را متوقف کنید؟')) {
+            return;
+        }
+        
+        try {
+            const response = await frappe.call({
+                method: 'pricing.pricing.doctype.competitor_analysis.final_enhanced_crawler.stop_final_crawler',
+                args: {
+                    competitor_name: currentCompetitor
+                }
+            });
+            
+            if (response.message.success) {
+                addLogEntry('⏹️ درخواست توقف کامل ارسال شد', 'success');
+            }
+            
+        } catch (error) {
+            addLogEntry('❌ خطا در توقف کرال: ' + error.message, 'error');
+        }
+    }
+    
+    // به‌روزرسانی وضعیت
+    async function refreshStatus() {
+        if (!currentCompetitor) return;
+        
+        try {
+            const response = await frappe.call({
+                method: 'pricing.pricing.doctype.competitor_analysis.final_enhanced_crawler.get_final_crawler_status',
+                args: {
+                    competitor_name: currentCompetitor
+                }
+            });
+            
+            if (response.message.success) {
+                updateProgress(response.message.data);
+                addLogEntry('🔄 وضعیت به‌روزرسانی شد', 'info');
+            }
+            
+        } catch (error) {
+            addLogEntry('❌ خطا در دریافت وضعیت: ' + error.message, 'error');
+        }
+    }
+    
+    // به‌روزرسانی پیشرفت
+    function updateProgress(data) {
+        if (!data) return;
+        
+        // به‌روزرسانی وضعیت
+        crawlStatus = data.status || 'pending';
+        const statusElement = document.getElementById('crawlStatus');
+        statusElement.innerHTML = `
+            <span class="status-indicator status-${data.status}"></span>
+            ${getStatusText(data.status)}
+        `;
+        
+        // به‌روزرسانی آمار
+        document.getElementById('discoveredCount').textContent = data.total_discovered || 0;
+        document.getElementById('crawledCount').textContent = data.total_crawled || 0;
+        document.getElementById('savedCount').textContent = data.total_saved || 0;
+        
+        // به‌روزرسانی نوار پیشرفت
+        const progress = data.progress_percentage || 0;
+        document.getElementById('progressFill').style.width = progress + '%';
+        document.getElementById('progressText').textContent = progress.toFixed(1) + '%';
+        
+        // نمایش URL جاری
+        const currentUrlSection = document.getElementById('currentUrlSection');
+        const currentUrlElement = document.getElementById('currentUrl');
+        
+        if (data.current_url) {
+            currentUrlElement.textContent = data.current_url;
+            currentUrlSection.style.display = 'block';
+        } else {
+            currentUrlSection.style.display = 'none';
+        }
+        
+        updateButtonStates();
+    }
+    
+    // به‌روزرسانی وضعیت دکمه‌ها
+    function updateButtonStates() {
+        const startBtn = document.getElementById('startBtn');
+        const pauseBtn = document.getElementById('pauseBtn');
+        const resumeBtn = document.getElementById('resumeBtn');
+        const stopBtn = document.getElementById('stopBtn');
+        
+        // ریست کردن دکمه‌ها
+        startBtn.disabled = false;
+        pauseBtn.disabled = true;
+        resumeBtn.disabled = true;
+        stopBtn.disabled = true;
+        startBtn.innerHTML = '🚀 شروع کرال';
+        
+        if (!currentCompetitor) return;
+        
+        switch (crawlStatus) {
+            case 'pending':
+                startBtn.disabled = false;
+                break;
+                
+            case 'discovering':
+            case 'crawling':
+            case 'processing':
+                startBtn.disabled = true;
+                pauseBtn.disabled = false;
+                stopBtn.disabled = false;
+                startBtn.innerHTML = '🔄 در حال اجرا...';
+                break;
+                
+            case 'paused':
+                startBtn.disabled = true;
+                resumeBtn.disabled = false;
+                stopBtn.disabled = false;
+                startBtn.innerHTML = '⏸️ متوقف شده';
+                break;
+                
+            case 'completed':
+            case 'failed':
+                startBtn.disabled = false;
+                startBtn.innerHTML = '🔄 شروع مجدد';
+                break;
+        }
+    }
+    
+    // متن وضعیت
+    function getStatusText(status) {
+        const statusTexts = {
+            'pending': 'در انتظار',
+            'discovering': 'در حال کشف',
+            'crawling': 'در حال کرال',
+            'processing': 'در حال پردازش',
+            'completed': 'تکمیل شده',
+            'failed': 'ناموفق',
+            'paused': 'متوقف شده'
+        };
+        return statusTexts[status] || status;
+    }
+    
+    // افزودن لاگ
+    function addLogEntry(message, level = 'info') {
+        const container = document.getElementById('logsContainer');
+        const entry = document.createElement('div');
+        entry.className = `log-entry ${level}`;
+        
+        const timestamp = new Date().toLocaleTimeString('fa-IR');
+        entry.textContent = `[${timestamp}] ${message}`;
+        
+        container.appendChild(entry);
+        container.scrollTop = container.scrollHeight;
+        
+        // محدود کردن تعداد لاگ‌ها
+        if (container.children.length > 100) {
+            container.removeChild(container.firstChild);
+        }
+    }
+    
+    // پاک کردن لاگ‌ها
+    function clearLogs() {
+        document.getElementById('logsContainer').innerHTML = '';
+        addLogEntry('لاگ‌ها پاک شدند', 'info');
+    }
+    
+    // نمایش هشدار
+    function showAlert(message, type = 'info') {
+        const alertDiv = document.createElement('div');
+        alertDiv.className = `alert alert-${type}`;
+        alertDiv.textContent = message;
+        
+        const container = document.querySelector('.dashboard-container');
+        container.insertBefore(alertDiv, container.firstChild);
+        
+        setTimeout(() => {
+            alertDiv.remove();
+        }, 5000);
+    }
+    
+    // ریست داشبورد
+    function resetDashboard() {
+        crawlStatus = 'pending';
+        updateProgress({
+            status: 'pending',
+            total_discovered: 0,
+            total_crawled: 0,
+            total_saved: 0,
+            progress_percentage: 0,
+            current_url: ''
+        });
+        updateButtonStates();
+    }
+    
+    // بارگذاری اولیه
+    document.addEventListener('DOMContentLoaded', function() {
+        addLogEntry('🚀 داشبورد کراولر بارگذاری شد', 'success');
+        updateButtonStates();
+    });
+</script>
+{% endblock %}

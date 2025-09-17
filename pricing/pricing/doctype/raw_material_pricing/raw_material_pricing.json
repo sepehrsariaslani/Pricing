@@ -1,0 +1,475 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "autoname": "naming_series:",
+ "creation": "2024-01-01 00:00:00.000000",
+ "default_view": "List",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "naming_series",
+  "title",
+  "material_code",
+  "material_name",
+  "material_category",
+  "uom",
+  "column_break_6",
+  "status",
+  "supplier",
+  "effective_date",
+  "expiry_date",
+  "section_break_11",
+  "pricing_details_tab",
+  "current_price",
+  "previous_price",
+  "price_change",
+  "price_change_percent",
+  "column_break_16",
+  "minimum_order_qty",
+  "lead_time_days",
+  "quality_grade",
+  "currency",
+  "section_break_21",
+  "market_data_tab",
+  "market_price",
+  "market_trend",
+  "volatility_index",
+  "seasonal_factor",
+  "column_break_26",
+  "global_price_index",
+  "exchange_rate_impact",
+  "commodity_futures_price",
+  "price_forecast_30_days",
+  "section_break_31",
+  "cost_impact_tab",
+  "affected_items",
+  "total_cost_impact",
+  "price_sensitivity",
+  "substitution_available",
+  "section_break_36",
+  "price_history_tab",
+  "price_history",
+  "section_break_38",
+  "supplier_info_tab",
+  "primary_supplier",
+  "alternative_suppliers",
+  "supplier_rating",
+  "payment_terms",
+  "column_break_43",
+  "contract_details",
+  "price_negotiation_notes",
+  "next_negotiation_date",
+  "bulk_discount_tiers",
+  "section_break_48",
+  "alerts_monitoring_tab",
+  "price_alert_threshold",
+  "auto_update_pricing",
+  "notification_users",
+  "last_price_update",
+  "column_break_53",
+  "monitoring_frequency",
+  "price_source",
+  "data_reliability",
+  "last_verified_date"
+ ],
+ "fields": [
+  {
+   "fieldname": "naming_series",
+   "fieldtype": "Select",
+   "label": "Naming Series",
+   "options": "RM-PRICE-.YYYY.-",
+   "reqd": 1
+  },
+  {
+   "fieldname": "title",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Title",
+   "reqd": 1
+  },
+  {
+   "fieldname": "material_code",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Material Code",
+   "options": "Item",
+   "reqd": 1
+  },
+  {
+   "fieldname": "material_name",
+   "fieldtype": "Data",
+   "label": "Material Name",
+   "read_only": 1
+  },
+  {
+   "fieldname": "material_category",
+   "fieldtype": "Link",
+   "label": "Material Category",
+   "options": "Item Group"
+  },
+  {
+   "fieldname": "uom",
+   "fieldtype": "Link",
+   "label": "UOM",
+   "options": "UOM",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_6",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Status",
+   "options": "\nActive\nInactive\nDiscontinued\nUnder Review",
+   "reqd": 1
+  },
+  {
+   "fieldname": "supplier",
+   "fieldtype": "Link",
+   "label": "Primary Supplier",
+   "options": "Supplier"
+  },
+  {
+   "fieldname": "effective_date",
+   "fieldtype": "Date",
+   "in_list_view": 1,
+   "label": "Effective Date",
+   "reqd": 1
+  },
+  {
+   "fieldname": "expiry_date",
+   "fieldtype": "Date",
+   "label": "Expiry Date"
+  },
+  {
+   "fieldname": "section_break_11",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "pricing_details_tab",
+   "fieldtype": "Tab Break",
+   "label": "Pricing Details"
+  },
+  {
+   "fieldname": "current_price",
+   "fieldtype": "Currency",
+   "in_list_view": 1,
+   "label": "Current Price",
+   "reqd": 1
+  },
+  {
+   "fieldname": "previous_price",
+   "fieldtype": "Currency",
+   "label": "Previous Price",
+   "read_only": 1
+  },
+  {
+   "fieldname": "price_change",
+   "fieldtype": "Currency",
+   "label": "Price Change",
+   "read_only": 1
+  },
+  {
+   "fieldname": "price_change_percent",
+   "fieldtype": "Percent",
+   "label": "Price Change %",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_16",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "minimum_order_qty",
+   "fieldtype": "Float",
+   "label": "Minimum Order Qty"
+  },
+  {
+   "fieldname": "lead_time_days",
+   "fieldtype": "Int",
+   "label": "Lead Time (Days)"
+  },
+  {
+   "fieldname": "quality_grade",
+   "fieldtype": "Select",
+   "label": "Quality Grade",
+   "options": "\nPremium\nStandard\nEconomic\nIndustrial"
+  },
+  {
+   "fieldname": "currency",
+   "fieldtype": "Link",
+   "label": "Currency",
+   "options": "Currency"
+  },
+  {
+   "fieldname": "section_break_21",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "market_data_tab",
+   "fieldtype": "Tab Break",
+   "label": "Market Data"
+  },
+  {
+   "fieldname": "market_price",
+   "fieldtype": "Currency",
+   "label": "Market Price"
+  },
+  {
+   "fieldname": "market_trend",
+   "fieldtype": "Select",
+   "label": "Market Trend",
+   "options": "\nRising\nStable\nFalling\nVolatile"
+  },
+  {
+   "fieldname": "volatility_index",
+   "fieldtype": "Float",
+   "label": "Volatility Index"
+  },
+  {
+   "fieldname": "seasonal_factor",
+   "fieldtype": "Float",
+   "label": "Seasonal Factor"
+  },
+  {
+   "fieldname": "column_break_26",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "global_price_index",
+   "fieldtype": "Float",
+   "label": "Global Price Index"
+  },
+  {
+   "fieldname": "exchange_rate_impact",
+   "fieldtype": "Percent",
+   "label": "Exchange Rate Impact"
+  },
+  {
+   "fieldname": "commodity_futures_price",
+   "fieldtype": "Currency",
+   "label": "Commodity Futures Price"
+  },
+  {
+   "fieldname": "price_forecast_30_days",
+   "fieldtype": "Currency",
+   "label": "Price Forecast (30 Days)"
+  },
+  {
+   "fieldname": "section_break_31",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "cost_impact_tab",
+   "fieldtype": "Tab Break",
+   "label": "Cost Impact"
+  },
+  {
+   "fieldname": "affected_items",
+   "fieldtype": "Table",
+   "label": "Affected Items",
+   "options": "Raw Material Impact"
+  },
+  {
+   "fieldname": "total_cost_impact",
+   "fieldtype": "Currency",
+   "label": "Total Cost Impact",
+   "read_only": 1
+  },
+  {
+   "fieldname": "price_sensitivity",
+   "fieldtype": "Select",
+   "label": "Price Sensitivity",
+   "options": "\nHigh\nMedium\nLow"
+  },
+  {
+   "fieldname": "substitution_available",
+   "fieldtype": "Check",
+   "label": "Substitution Available"
+  },
+  {
+   "fieldname": "section_break_36",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "price_history_tab",
+   "fieldtype": "Tab Break",
+   "label": "Price History"
+  },
+  {
+   "fieldname": "price_history",
+   "fieldtype": "Table",
+   "label": "Price History",
+   "options": "Raw Material Price History"
+  },
+  {
+   "fieldname": "section_break_38",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "supplier_info_tab",
+   "fieldtype": "Tab Break",
+   "label": "Supplier Info"
+  },
+  {
+   "fieldname": "primary_supplier",
+   "fieldtype": "Link",
+   "label": "Primary Supplier",
+   "options": "Supplier"
+  },
+  {
+   "fieldname": "alternative_suppliers",
+   "fieldtype": "Table",
+   "label": "Alternative Suppliers",
+   "options": "Raw Material Supplier"
+  },
+  {
+   "fieldname": "supplier_rating",
+   "fieldtype": "Rating",
+   "label": "Supplier Rating"
+  },
+  {
+   "fieldname": "payment_terms",
+   "fieldtype": "Small Text",
+   "label": "Payment Terms"
+  },
+  {
+   "fieldname": "column_break_43",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "contract_details",
+   "fieldtype": "Text",
+   "label": "Contract Details"
+  },
+  {
+   "fieldname": "price_negotiation_notes",
+   "fieldtype": "Text",
+   "label": "Price Negotiation Notes"
+  },
+  {
+   "fieldname": "next_negotiation_date",
+   "fieldtype": "Date",
+   "label": "Next Negotiation Date"
+  },
+  {
+   "fieldname": "bulk_discount_tiers",
+   "fieldtype": "Table",
+   "label": "Bulk Discount Tiers",
+   "options": "Raw Material Discount Tier"
+  },
+  {
+   "fieldname": "section_break_48",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "alerts_monitoring_tab",
+   "fieldtype": "Tab Break",
+   "label": "Alerts & Monitoring"
+  },
+  {
+   "fieldname": "price_alert_threshold",
+   "fieldtype": "Percent",
+   "label": "Price Alert Threshold"
+  },
+  {
+   "fieldname": "auto_update_pricing",
+   "fieldtype": "Check",
+   "label": "Auto Update Pricing"
+  },
+  {
+   "fieldname": "notification_users",
+   "fieldtype": "Table",
+   "label": "Notification Users",
+   "options": "Raw Material Notification User"
+  },
+  {
+   "fieldname": "last_price_update",
+   "fieldtype": "Datetime",
+   "label": "Last Price Update",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_53",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "monitoring_frequency",
+   "fieldtype": "Select",
+   "label": "Monitoring Frequency",
+   "options": "\nDaily\nWeekly\nMonthly\nQuarterly"
+  },
+  {
+   "fieldname": "price_source",
+   "fieldtype": "Select",
+   "label": "Price Source",
+   "options": "\nSupplier Quote\nMarket Data\nCommodity Exchange\nInternal Estimate\nExternal API"
+  },
+  {
+   "fieldname": "data_reliability",
+   "fieldtype": "Rating",
+   "label": "Data Reliability"
+  },
+  {
+   "fieldname": "last_verified_date",
+   "fieldtype": "Date",
+   "label": "Last Verified Date"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2024-01-01 00:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Pricing",
+ "name": "Raw Material Pricing",
+ "naming_rule": "By \"Naming Series\" field",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Purchase Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Purchase User",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "title_field": "title",
+ "track_changes": 1,
+ "track_seen": 1,
+ "track_views": 1
+}

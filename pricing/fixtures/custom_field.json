@@ -1,0 +1,245 @@
+[
+ {
+  "doctype": "Custom Field",
+  "name": "Item Price-raw_material_cost",
+  "dt": "Item Price",
+  "fieldname": "raw_material_cost",
+  "fieldtype": "Currency",
+  "label": "Raw Material Cost",
+  "insert_after": "price_list_rate"
+ },
+ {
+  "doctype": "Custom Field",
+  "name": "Item Price-electricity_cost",
+  "dt": "Item Price",
+  "fieldname": "electricity_cost",
+  "fieldtype": "Currency",
+  "label": "Electricity Cost",
+  "insert_after": "raw_material_cost"
+ },
+ {
+  "doctype": "Custom Field",
+  "name": "Item Price-consumable_cost",
+  "dt": "Item Price",
+  "fieldname": "consumable_cost",
+  "fieldtype": "Currency",
+  "label": "Consumable Cost",
+  "insert_after": "electricity_cost"
+ },
+ {
+  "doctype": "Custom Field",
+  "name": "Item Price-rent_cost",
+  "dt": "Item Price",
+  "fieldname": "rent_cost",
+  "fieldtype": "Currency",
+  "label": "Rent Cost",
+  "insert_after": "consumable_cost"
+ },
+ {
+  "doctype": "Custom Field",
+  "name": "Item Price-labor_cost",
+  "dt": "Item Price",
+  "fieldname": "labor_cost",
+  "fieldtype": "Currency",
+  "label": "Labor Cost",
+  "insert_after": "rent_cost"
+ },
+ {
+  "doctype": "Custom Field",
+  "name": "Item Price-operation_cost",
+  "dt": "Item Price",
+  "fieldname": "operation_cost",
+  "fieldtype": "Currency",
+  "label": "Operation Cost",
+  "insert_after": "labor_cost"
+ },
+ {
+  "doctype": "Custom Field",
+  "name": "Item Price-overhead_cost",
+  "dt": "Item Price",
+  "fieldname": "overhead_cost",
+  "fieldtype": "Currency",
+  "label": "Overhead Cost",
+  "insert_after": "operation_cost"
+ },
+ {
+  "doctype": "Custom Field",
+  "name": "Item Price-total_cost",
+  "dt": "Item Price",
+  "fieldname": "total_cost",
+  "fieldtype": "Currency",
+  "label": "Total Cost",
+  "insert_after": "overhead_cost"
+ },
+ {
+  "doctype": "Custom Field",
+  "name": "Item Price-selling_price",
+  "dt": "Item Price",
+  "fieldname": "selling_price",
+  "fieldtype": "Currency",
+  "label": "Selling Price",
+  "insert_after": "total_cost"
+ },
+ {
+  "doctype": "Custom Field",
+  "name": "Item Price-profit_amount",
+  "dt": "Item Price",
+  "fieldname": "profit_amount",
+  "fieldtype": "Currency",
+  "label": "Profit Amount",
+  "insert_after": "selling_price"
+ },
+ {
+  "doctype": "Custom Field",
+  "name": "Item Price-current_market_price",
+  "dt": "Item Price",
+  "fieldname": "current_market_price",
+  "fieldtype": "Currency",
+  "label": "Current Market Price",
+  "insert_after": "profit_amount"
+ },
+ {
+  "doctype": "Custom Field",
+  "name": "Item Price-profit_loss_status",
+  "dt": "Item Price",
+  "fieldname": "profit_loss_status",
+  "fieldtype": "Data",
+  "label": "Profit/Loss Status",
+  "insert_after": "current_market_price"
+ },
+ {
+  "doctype": "Custom Field",
+  "name": "Item Price-profit_loss_amount",
+  "dt": "Item Price",
+  "fieldname": "profit_loss_amount",
+  "fieldtype": "Currency",
+  "label": "Profit/Loss Amount",
+  "insert_after": "profit_loss_status"
+ },
+ {
+  "doctype": "Custom Field",
+  "name": "Item Price-commission_amount",
+  "dt": "Item Price",
+  "fieldname": "commission_amount",
+  "fieldtype": "Currency",
+  "label": "Commission Amount",
+  "insert_after": "profit_loss_amount"
+ },
+ {
+  "doctype": "Custom Field",
+  "name": "Item Price-net_profit_after_commission",
+  "dt": "Item Price",
+  "fieldname": "net_profit_after_commission",
+  "fieldtype": "Currency",
+  "label": "Net Profit After Commission",
+  "insert_after": "commission_amount"
+ },
+ {
+  "doctype": "Custom Field",
+  "name": "Item Price-final_price_with_markup",
+  "dt": "Item Price",
+  "fieldname": "final_price_with_markup",
+  "fieldtype": "Currency",
+  "label": "Final Price With Markup",
+  "insert_after": "net_profit_after_commission"
+ },
+ {
+  "doctype": "Custom Field",
+  "name": "Item Price-required_markup_amount",
+  "dt": "Item Price",
+  "fieldname": "required_markup_amount",
+  "fieldtype": "Currency",
+  "label": "Required Markup Amount",
+  "insert_after": "final_price_with_markup"
+ },
+ {
+  "doctype": "Custom Field",
+  "name": "Item Price-base_cost_amount",
+  "dt": "Item Price",
+  "fieldname": "base_cost_amount",
+  "fieldtype": "Currency",
+  "label": "Base Cost Amount",
+  "insert_after": "required_markup_amount"
+ },
+ {
+  "doctype": "Custom Field",
+  "name": "Item Price-profit_added_amount",
+  "dt": "Item Price",
+  "fieldname": "profit_added_amount",
+  "fieldtype": "Currency",
+  "label": "Profit Added Amount",
+  "insert_after": "base_cost_amount"
+ },
+ {
+  "doctype": "Custom Field",
+  "name": "Item Price-interest_added_amount",
+  "dt": "Item Price",
+  "fieldname": "interest_added_amount",
+  "fieldtype": "Currency",
+  "label": "Interest Added Amount",
+  "insert_after": "profit_added_amount"
+ },
+ {
+  "doctype": "Custom Field",
+  "name": "Item Price-commission_deduction_amount",
+  "dt": "Item Price",
+  "fieldname": "commission_deduction_amount",
+  "fieldtype": "Currency",
+  "label": "Commission Deduction Amount",
+  "insert_after": "interest_added_amount"
+ },
+ {
+  "doctype": "Custom Field",
+  "name": "Item Price-markup_added_amount",
+  "dt": "Item Price",
+  "fieldname": "markup_added_amount",
+  "fieldtype": "Currency",
+  "label": "Markup Added Amount",
+  "insert_after": "commission_deduction_amount"
+ },
+ {
+  "doctype": "Custom Field",
+  "name": "Item Price-rounding_adjustment_amount",
+  "dt": "Item Price",
+  "fieldname": "rounding_adjustment_amount",
+  "fieldtype": "Currency",
+  "label": "Rounding Adjustment Amount",
+  "insert_after": "markup_added_amount"
+ },
+ {
+  "doctype": "Custom Field",
+  "name": "Item Price-down_payment_amount",
+  "dt": "Item Price",
+  "fieldname": "down_payment_amount",
+  "fieldtype": "Currency",
+  "label": "Down Payment Amount",
+  "insert_after": "rounding_adjustment_amount"
+ },
+ {
+  "doctype": "Custom Field",
+  "name": "Item Price-monthly_payment",
+  "dt": "Item Price",
+  "fieldname": "monthly_payment",
+  "fieldtype": "Currency",
+  "label": "Monthly Payment",
+  "insert_after": "down_payment_amount"
+ },
+ {
+  "doctype": "Custom Field",
+  "name": "Item Price-total_installment_amount",
+  "dt": "Item Price",
+  "fieldname": "total_installment_amount",
+  "fieldtype": "Currency",
+  "label": "Total Installment Amount",
+  "insert_after": "monthly_payment"
+ },
+ {
+  "doctype": "Custom Field",
+  "name": "Item Price-total_interest",
+  "dt": "Item Price",
+  "fieldname": "total_interest",
+  "fieldtype": "Currency",
+  "label": "Total Interest",
+  "insert_after": "total_installment_amount"
+ }
+]

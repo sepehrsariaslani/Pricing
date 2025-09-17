@@ -1,0 +1,99 @@
+{
+    "actions": [],
+    "allow_rename": 1,
+    "creation": "2024-03-19 10:00:00.000000",
+    "doctype": "DocType",
+    "editable_grid": 1,
+    "engine": "InnoDB",
+    "field_order": [
+        "original_item",
+        "original_item_price",
+        "original_item_uom",
+        "substitute_item",
+        "substitute_item_price",
+        "substitute_item_uom",
+        "price_difference",
+        "cost_savings_percentage"
+    ],
+    "fields": [
+        {
+            "fieldname": "original_item",
+            "fieldtype": "Link",
+            "in_list_view": 1,
+            "label": "کالای اصلی",
+            "options": "Item",
+            "reqd": 1,
+            "width": "50%"
+        },
+        {
+            "fieldname": "original_item_price",
+            "fieldtype": "Currency",
+            "in_list_view": 1,
+            "label": "قیمت کالای اصلی",
+            "read_only": 1,
+            "description": "قیمت خودکار کالای اصلی از سیستم"
+        },
+        {
+            "fieldname": "original_item_uom",
+            "fieldtype": "Link",
+            "label": "واحد کالای اصلی",
+            "options": "UOM",
+            "read_only": 1,
+            "fetch_from": "original_item.stock_uom"
+        },
+        {
+            "fieldname": "substitute_item",
+            "fieldtype": "Link",
+            "in_list_view": 1,
+            "label": "کالای جایگزین",
+            "options": "Item",
+            "reqd": 1,
+            "width": "50%"
+        },
+        {
+            "fieldname": "substitute_item_price",
+            "fieldtype": "Currency",
+            "in_list_view": 1,
+            "label": "قیمت کالای جایگزین",
+            "read_only": 1,
+            "description": "قیمت خودکار کالای جایگزین از سیستم"
+        },
+        {
+            "fieldname": "substitute_item_uom",
+            "fieldtype": "Link",
+            "label": "واحد کالای جایگزین",
+            "options": "UOM",
+            "read_only": 1,
+            "fetch_from": "substitute_item.stock_uom"
+        },
+        {
+            "fieldname": "price_difference",
+            "fieldtype": "Currency",
+            "in_list_view": 1,
+            "label": "تفاوت قیمت",
+            "read_only": 1,
+            "description": "تفاوت قیمت بین کالای اصلی و جایگزین"
+        },
+        {
+            "fieldname": "cost_savings_percentage",
+            "fieldtype": "Percent",
+            "in_list_view": 1,
+            "label": "درصد صرفه‌جویی",
+            "read_only": 1,
+            "description": "درصد صرفه‌جویی در صورت استفاده از کالای جایگزین"
+        }
+    ],
+    "index_web_pages_for_search": 1,
+    "istable": 1,
+    "links": [],
+    "modified": "2024-03-19 10:00:00.000000",
+    "modified_by": "Administrator",
+    "module": "Pricing",
+    "name": "Material Substitution",
+    "owner": "Administrator",
+    "permissions": [],
+    "sort_field": "modified",
+    "sort_order": "DESC",
+    "states": [],
+    "track_changes": 1
+}

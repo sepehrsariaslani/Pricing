@@ -1,0 +1,628 @@
+{
+    "actions": [],
+    "allow_rename": 1,
+    "autoname": "format:APL-{####}",
+    "creation": "2024-03-19 10:00:00.000000",
+    "doctype": "DocType",
+    "editable_grid": 1,
+    "engine": "InnoDB",
+    "field_order": [
+        "basic_info_tab",
+        "basic_section",
+        "price_list",
+        "valid_from",
+        "valid_until",
+        "profit_margin",
+        "pricing_strategies_tab",
+        "installment_section",
+        "enable_installment",
+        "down_payment_percentage",
+        "installment_column_break",
+        "number_of_months",
+        "monthly_interest_rate",
+        "installment_total_interest_percentage",
+        "deferred_payment_section",
+        "enable_deferred_payment",
+        "deferred_payment_months",
+        "deferred_column_break",
+        "deferred_payment_interest_rate",
+        "deferred_payment_total_interest_percentage",
+        "commission_section",
+        "commission_percentage",
+        "commission_column_break",
+        "net_profit_after_commission",
+        "net_profit_percentage_after_commission",
+        "discount_section",
+        "target_discount_percentage",
+        "required_markup_percentage",
+        "discount_column_break",
+        "final_selling_price_with_markup",
+        "direct_markup_percentage",
+        "pricing_steps_section",
+        "pricing_steps",
+        "advanced_pricing_tab",
+        "advanced_pricing_section",
+        "enable_volume_pricing",
+        "enable_seasonal_pricing",
+        "advanced_column_break",
+        "seasonal_factor",
+        "enable_customer_tier_pricing",
+        "volume_pricing_tiers",
+        "customer_tier_discounts",
+        "comparison_section",
+        "compare_with_price_list",
+        "price_comparison_summary",
+        "materials_management_tab",
+        "material_substitution_section",
+        "material_substitutions",
+        "manual_material_pricing_section",
+        "manual_material_prices",
+        "missing_material_pricing_section",
+        "missing_material_prices",
+        "items_calculation_tab",
+        "filter_section",
+        "item_name_filter",
+        "item_group",
+        "filter_column_break",
+        "warehouse",
+        "brand",
+        "fetch_items_button",
+        "items_section",
+        "items",
+        "total_profit",
+        "update_prices_button",
+        "remove_items_section",
+        "remove_item_name_filter",
+        "remove_item_group",
+        "remove_filter_column_break",
+        "remove_warehouse",
+        "remove_brand",
+        "remove_items_button",
+        "remove_no_bom_items_button",
+        "display_settings_tab",
+        "pricing_details_section",
+        "show_base_cost",
+        "show_profit_amount", 
+        "display_column_break",
+        "show_commission_amount",
+        "show_installment_details",
+        "show_discount_amount",
+        "pricing_options_section",
+        "price_rounding_amount"
+    ],
+    "fields": [
+        {
+            "fieldname": "basic_info_tab",
+            "fieldtype": "Tab Break",
+            "label": "اطلاعات پایه"
+        },
+        {
+            "fieldname": "basic_section",
+            "fieldtype": "Section Break",
+            "label": "تنظیمات کلی"
+        },
+        {
+            "fieldname": "price_list",
+            "fieldtype": "Link",
+            "in_list_view": 1,
+            "label": "لیست قیمت",
+            "options": "Price List",
+            "reqd": 1
+        },
+        {
+            "fieldname": "valid_from",
+            "fieldtype": "Date",
+            "label": "معتبر از تاریخ",
+            "reqd": 1
+        },
+        {
+            "fieldname": "valid_until",
+            "fieldtype": "Date",
+            "label": "معتبر تا تاریخ",
+            "reqd": 1
+        },
+        {
+            "fieldname": "profit_margin",
+            "fieldtype": "Percent",
+            "label": "حاشیه سود (درصد)",
+            "reqd": 1
+        },
+        {
+            "fieldname": "pricing_strategies_tab",
+            "fieldtype": "Tab Break",
+            "label": "استراتژی‌های قیمت‌گذاری"
+        },
+        {
+            "fieldname": "installment_section",
+            "fieldtype": "Section Break",
+            "label": "پرداخت قسطی"
+        },
+        {
+            "fieldname": "enable_installment",
+            "fieldtype": "Check",
+            "label": "فعال‌سازی محاسبه قسط",
+            "default": 0
+        },
+        {
+            "fieldname": "down_payment_percentage",
+            "fieldtype": "Percent",
+            "label": "درصد پیش‌پرداخت",
+            "depends_on": "enable_installment",
+            "description": "درصدی از قیمت کل که از قبل پرداخت می‌شود"
+        },
+        {
+            "fieldname": "installment_column_break",
+            "fieldtype": "Column Break"
+        },
+        {
+            "fieldname": "number_of_months",
+            "fieldtype": "Int",
+            "label": "تعداد ماه",
+            "depends_on": "enable_installment",
+            "description": "تعداد اقساط ماهانه"
+        },
+        {
+            "fieldname": "monthly_interest_rate",
+            "fieldtype": "Percent",
+            "label": "نرخ بهره ماهانه (درصد)",
+            "depends_on": "enable_installment",
+            "description": "نرخ بهره ماهانه برای اقساط",
+            "default": 5
+        },
+        {
+            "fieldname": "installment_total_interest_percentage",
+            "fieldtype": "Percent",
+            "label": "درصد کل بهره قسطی",
+            "read_only": 1,
+            "depends_on": "enable_installment",
+            "description": "درصد کلی که باید به قیمت اضافه شود"
+        },
+        {
+            "fieldname": "commission_section",
+            "fieldtype": "Section Break",
+            "label": "محاسبات کمیسیون"
+        },
+        {
+            "fieldname": "commission_percentage",
+            "fieldtype": "Percent",
+            "label": "درصد کمیسیون",
+            "description": "درصد کمیسیون پرداختی به تیم فروش"
+        },
+        {
+            "fieldname": "commission_column_break",
+            "fieldtype": "Column Break"
+        },
+        {
+            "fieldname": "net_profit_after_commission",
+            "fieldtype": "Currency",
+            "label": "سود خالص بعد از کمیسیون",
+            "read_only": 1
+        },
+        {
+            "fieldname": "net_profit_percentage_after_commission",
+            "fieldtype": "Percent",
+            "label": "درصد سود خالص بعد از کمیسیون",
+            "read_only": 1
+        },
+        {
+            "fieldname": "discount_section",
+            "fieldtype": "Section Break",
+            "label": "محاسبات تخفیف و افزایش قیمت"
+        },
+        {
+            "fieldname": "target_discount_percentage",
+            "fieldtype": "Percent",
+            "label": "درصد تخفیف هدف",
+            "description": "درصد تخفیفی که می‌خواهید به مشتریان ارائه دهید"
+        },
+        {
+            "fieldname": "required_markup_percentage",
+            "fieldtype": "Percent",
+            "label": "درصد افزایش قیمت مورد نیاز",
+            "read_only": 1,
+            "description": "افزایش قیمت لازم برای رسیدن به قیمت هدف بعد از تخفیف"
+        },
+        {
+            "fieldname": "discount_column_break",
+            "fieldtype": "Column Break"
+        },
+        {
+            "fieldname": "final_selling_price_with_markup",
+            "fieldtype": "Currency",
+            "label": "قیمت فروش نهایی (با افزایش قیمت)",
+            "read_only": 1
+        },
+        {
+            "fieldname": "direct_markup_percentage",
+            "fieldtype": "Percent",
+            "label": "درصد افزایش مستقیم قیمت",
+            "description": "درصد افزایش مستقیم که به قیمت اضافه می‌شود"
+        },
+        {
+            "fieldname": "advanced_pricing_tab",
+            "fieldtype": "Tab Break",
+            "label": "قیمت‌گذاری پیشرفته"
+        },
+        {
+            "fieldname": "advanced_pricing_section",
+            "fieldtype": "Section Break",
+            "label": "تنظیمات پیشرفته"
+        },
+        {
+            "fieldname": "enable_volume_pricing",
+            "fieldtype": "Check",
+            "label": "فعال‌سازی قیمت‌گذاری حجمی",
+            "description": "تخفیف بر اساس مقدار خرید"
+        },
+        {
+            "fieldname": "volume_pricing_tiers",
+            "fieldtype": "Table",
+            "label": "سطوح قیمت‌گذاری حجمی",
+            "options": "Volume Pricing Tier",
+            "depends_on": "enable_volume_pricing"
+        },
+        {
+            "fieldname": "enable_seasonal_pricing",
+            "fieldtype": "Check",
+            "label": "فعال‌سازی قیمت‌گذاری فصلی",
+            "description": "تنظیم قیمت بر اساس فصل"
+        },
+        {
+            "fieldname": "advanced_column_break",
+            "fieldtype": "Column Break"
+        },
+        {
+            "fieldname": "seasonal_factor",
+            "fieldtype": "Percent",
+            "label": "ضریب فصلی",
+            "depends_on": "enable_seasonal_pricing",
+            "description": "درصد افزایش یا کاهش قیمت در فصل فعلی"
+        },
+        {
+            "fieldname": "enable_customer_tier_pricing",
+            "fieldtype": "Check",
+            "label": "فعال‌سازی قیمت‌گذاری سطح مشتری",
+            "description": "تخفیف بر اساس سطح مشتری (VIP، عادی، عمده‌فروش)"
+        },
+        {
+            "fieldname": "customer_tier_discounts",
+            "fieldtype": "Table",
+            "label": "تخفیفات سطح مشتری",
+            "options": "Customer Tier Discount",
+            "depends_on": "enable_customer_tier_pricing"
+        },
+        {
+            "fieldname": "comparison_section",
+            "fieldtype": "Section Break",
+            "label": "مقایسه قیمت‌ها"
+        },
+        {
+            "fieldname": "compare_with_price_list",
+            "fieldtype": "Link",
+            "label": "مقایسه با لیست قیمت فعال",
+            "options": "Price List",
+            "description": "لیست قیمت فعال را انتخاب کنید تا هزینه‌های فعلی را با قیمت‌های موجود مقایسه کنید"
+        },
+        {
+            "fieldname": "price_comparison_summary",
+            "fieldtype": "HTML",
+            "label": "خلاصه مقایسه قیمت",
+            "depends_on": "compare_with_price_list"
+        },
+        {
+            "fieldname": "materials_management_tab",
+            "fieldtype": "Tab Break",
+            "label": "مدیریت مواد اولیه"
+        },
+        {
+            "fieldname": "material_substitution_section",
+            "fieldtype": "Section Break",
+            "label": "جایگزینی مواد"
+        },
+        {
+            "fieldname": "material_substitutions",
+            "fieldtype": "Table",
+            "label": "جایگزینی مواد",
+            "options": "Material Substitution",
+            "description": "تعریف جایگزین‌های مواد برای محاسبات هزینه"
+        },
+        {
+            "fieldname": "manual_material_pricing_section",
+            "fieldtype": "Section Break",
+            "label": "قیمت‌گذاری دستی مواد"
+        },
+        {
+            "fieldname": "manual_material_prices",
+            "fieldtype": "Table",
+            "label": "قیمت‌های دستی مواد",
+            "options": "Manual Material Price",
+            "description": "قیمت‌های دستی برای مواد اولیه که بر روی محاسبات BOM تأثیر می‌گذارد"
+        },
+        {
+            "fieldname": "missing_material_pricing_section",
+            "fieldtype": "Section Break",
+            "label": "مواد اولیه بدون قیمت"
+        },
+        {
+            "fieldname": "missing_material_prices",
+            "fieldtype": "Table",
+            "label": "مواد اولیه بدون قیمت",
+            "options": "Missing Material Price",
+            "description": "مواد اولیه‌ای که در BOMها استفاده شده‌اند اما قیمت ندارند"
+        },
+        {
+            "fieldname": "items_calculation_tab",
+            "fieldtype": "Tab Break",
+            "label": "محاسبه کالاها"
+        },
+        {
+            "fieldname": "show_base_cost",
+            "fieldtype": "Check",
+            "label": "نمایش هزینه پایه",
+            "default": 1
+        },
+        {
+            "fieldname": "show_profit_amount",
+            "fieldtype": "Check", 
+            "label": "نمایش مبلغ سود",
+            "default": 1
+        },
+        {
+            "fieldname": "show_commission_amount",
+            "fieldtype": "Check",
+            "label": "نمایش مبلغ کمیسیون",
+            "default": 1
+        },
+        {
+            "fieldname": "show_installment_details",
+            "fieldtype": "Check",
+            "label": "نمایش جزئیات قسط",
+            "default": 1
+        },
+        {
+            "fieldname": "show_discount_amount",
+            "fieldtype": "Check",
+            "label": "نمایش مبلغ تخفیف",
+            "default": 1
+        },
+        {
+            "fieldname": "pricing_steps_section",
+            "fieldtype": "Section Break",
+            "label": "مراحل قیمت‌گذاری ترکیبی"
+        },
+        {
+            "fieldname": "pricing_steps",
+            "fieldtype": "Table",
+            "label": "مراحل قیمت‌گذاری",
+            "options": "Auto Price List Pricing Step",
+            "description": "تعریف مراحل قیمت‌گذاری به ترتیب اعمال"
+        },
+        {
+            "fieldname": "deferred_payment_section",
+            "fieldtype": "Section Break",
+            "label": "پرداخت تأخیری"
+        },
+        {
+            "fieldname": "enable_deferred_payment",
+            "fieldtype": "Check",
+            "label": "فعال‌سازی پرداخت تأخیری",
+            "default": 0,
+            "description": "پیش‌پرداخت + پرداخت کل بعد از مدت مشخص"
+        },
+        {
+            "fieldname": "deferred_payment_months",
+            "fieldtype": "Int",
+            "label": "مدت تأخیر (ماه)",
+            "default": 4,
+            "depends_on": "enable_deferred_payment"
+        },
+        {
+            "fieldname": "deferred_column_break",
+            "fieldtype": "Column Break"
+        },
+        {
+            "fieldname": "deferred_payment_interest_rate",
+            "fieldtype": "Percent",
+            "label": "نرخ بهره تأخیری (ماهانه)",
+            "depends_on": "enable_deferred_payment"
+        },
+        {
+            "fieldname": "deferred_payment_total_interest_percentage",
+            "fieldtype": "Percent",
+            "label": "درصد کل بهره تأخیری",
+            "read_only": 1,
+            "depends_on": "enable_deferred_payment",
+            "description": "درصد کلی که باید به قیمت اضافه شود"
+        },
+        {
+            "fieldname": "filter_section",
+            "fieldtype": "Section Break",
+            "label": "فیلترهای کالا"
+        },
+        {
+            "fieldname": "item_name_filter",
+            "fieldtype": "Data",
+            "label": "فیلتر نام کالا",
+            "description": "کالاهایی که این متن در نامشان وجود دارد را انتخاب کنید"
+        },
+        {
+            "fieldname": "item_group",
+            "fieldtype": "Link",
+            "label": "گروه کالا",
+            "options": "Item Group"
+        },
+        {
+            "fieldname": "filter_column_break",
+            "fieldtype": "Column Break"
+        },
+        {
+            "fieldname": "warehouse",
+            "fieldtype": "Link",
+            "label": "انبار",
+            "options": "Warehouse"
+        },
+        {
+            "fieldname": "brand",
+            "fieldtype": "Link",
+            "label": "برند",
+            "options": "Brand"
+        },
+        {
+            "fieldname": "fetch_items_button",
+            "fieldtype": "Button",
+            "label": "دریافت کالاها"
+        },
+        {
+            "fieldname": "items_section",
+            "fieldtype": "Section Break",
+            "label": "کالاها"
+        },
+        {
+            "fieldname": "items",
+            "fieldtype": "Table",
+            "label": "کالاها",
+            "options": "Auto Price List Item"
+        },
+        {
+            "fieldname": "total_profit",
+            "fieldtype": "Currency",
+            "label": "سود کل",
+            "read_only": 1
+        },
+        {
+            "fieldname": "update_prices_button",
+            "fieldtype": "Button",
+            "label": "به‌روزرسانی قیمت‌ها",
+            "depends_on": "eval:doc.docstatus == 1"
+        },
+        {
+            "fieldname": "remove_items_section",
+            "fieldtype": "Section Break",
+            "label": "حذف کالاها"
+        },
+        {
+            "fieldname": "remove_item_name_filter",
+            "fieldtype": "Data",
+            "label": "فیلتر نام کالا برای حذف",
+            "description": "کالاهایی که این متن در نامشان وجود دارد حذف خواهند شد"
+        },
+        {
+            "fieldname": "remove_item_group",
+            "fieldtype": "Link",
+            "label": "گروه کالا برای حذف",
+            "options": "Item Group"
+        },
+        {
+            "fieldname": "remove_filter_column_break",
+            "fieldtype": "Column Break"
+        },
+        {
+            "fieldname": "remove_warehouse",
+            "fieldtype": "Link",
+            "label": "انبار برای حذف",
+            "options": "Warehouse"
+        },
+        {
+            "fieldname": "remove_brand",
+            "fieldtype": "Link",
+            "label": "برند برای حذف",
+            "options": "Brand"
+        },
+        {
+            "fieldname": "remove_items_button",
+            "fieldtype": "Button",
+            "label": "حذف کالاها"
+        },
+        {
+            "fieldname": "remove_no_bom_items_button",
+            "fieldtype": "Button",
+            "label": "حذف کالاهای بدون BOM فعال"
+        },
+        {
+            "fieldname": "display_settings_tab",
+            "fieldtype": "Tab Break",
+            "label": "تنظیمات نمایش"
+        },
+        {
+            "fieldname": "pricing_details_section",
+            "fieldtype": "Section Break",
+            "label": "جزئیات نمایش"
+        },
+        {
+            "fieldname": "show_base_cost",
+            "fieldtype": "Check",
+            "label": "نمایش هزینه پایه",
+            "default": 1
+        },
+        {
+            "fieldname": "show_profit_amount",
+            "fieldtype": "Check", 
+            "label": "نمایش مبلغ سود",
+            "default": 1
+        },
+        {
+            "fieldname": "display_column_break",
+            "fieldtype": "Column Break"
+        },
+        {
+            "fieldname": "show_commission_amount",
+            "fieldtype": "Check",
+            "label": "نمایش مبلغ کمیسیون",
+            "default": 1
+        },
+        {
+            "fieldname": "show_installment_details",
+            "fieldtype": "Check",
+            "label": "نمایش جزئیات قسط",
+            "default": 1
+        },
+        {
+            "fieldname": "show_discount_amount",
+            "fieldtype": "Check",
+            "label": "نمایش مبلغ تخفیف",
+            "default": 1
+        },
+        {
+            "fieldname": "pricing_options_section",
+            "fieldtype": "Section Break",
+            "label": "گزینه‌های قیمت‌گذاری"
+        },
+        {
+            "fieldname": "price_rounding_amount",
+            "fieldtype": "Currency",
+            "label": "مبلغ رند کردن قیمت",
+            "description": "قیمت‌ها به سمت بالا به این مبلغ رند می‌شوند (مثال: 1000 برای رند به هزارگان)",
+            "default": 0
+        }
+    ],
+    "index_web_pages_for_search": 1,
+    "is_submittable": 1,
+    "istable": 0,
+    "links": [],
+    "modified": "2024-03-19 10:00:00.000000",
+    "modified_by": "Administrator",
+    "module": "Pricing",
+    "name": "Auto Price List",
+    "naming_rule": "By fieldname",
+    "owner": "Administrator",
+    "permissions": [
+        {
+            "create": 1,
+            "delete": 1,
+            "email": 1,
+            "export": 1,
+            "print": 1,
+            "read": 1,
+            "report": 1,
+            "role": "System Manager",
+            "share": 1,
+            "write": 1,
+            "submit": 1,
+            "cancel": 1
+        }
+    ],
+    "sort_field": "modified",
+    "sort_order": "DESC",
+    "states": [],
+    "track_changes": 1
+} 
