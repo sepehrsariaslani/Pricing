@@ -1152,6 +1152,17 @@ def get_employee_accounting_data(employee=None):
     """
     دریافت اطلاعات حسابداری کارمند
     """
+    import json
+    
+    # Parse employee data if it's a JSON string
+    if employee and isinstance(employee, str):
+        try:
+            employee_data = json.loads(employee)
+            employee = employee_data.get("name")
+        except (json.JSONDecodeError, AttributeError):
+            # If it's not JSON, assume it's already the employee name
+            pass
+    
     if not employee:
         # دریافت کارمند فعلی
         employee_doc = frappe.get_all("Employee", 
@@ -1201,8 +1212,8 @@ def get_employee_accounting_data(employee=None):
         FROM `tabGL Entry`
         WHERE party_type = 'Employee' 
         AND party = %s
-        AND (account = %s OR account LIKE '%حقوق و دستمزد پرداختنی%')
-    """, (employee, payable_account), as_dict=True)
+        AND (account = %s OR account LIKE %s)
+    """, (employee, payable_account, '%حقوق و دستمزد پرداختنی%'), as_dict=True)
     
     total_paid = total_paid[0].get("total_paid", 0) if total_paid else 0
     
@@ -1250,11 +1261,11 @@ def get_employee_accounting_data(employee=None):
         FROM `tabGL Entry`
         WHERE party_type = 'Employee' 
         AND party = %s
-        AND (account = %s OR account LIKE '%حقوق و دستمزد پرداختنی%')
+        AND (account = %s OR account LIKE %s)
         AND credit > 0
         ORDER BY posting_date DESC, creation DESC
         LIMIT 20
-    """, (employee, payable_account), as_dict=True)
+    """, (employee, payable_account, '%حقوق و دستمزد پرداختنی%'), as_dict=True)
     
     return {
         "total_earnings": total_earnings,
