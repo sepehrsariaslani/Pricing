@@ -2,41 +2,47 @@ frappe.ui.form.on('Auto Price List', {
     refresh: function(frm) {
         console.log("Auto Price List refresh triggered", frm.doc.name);
         
-        // Load and add custom buttons
-        load_and_add_buttons(frm);
-        
-        // Set up field dependencies and calculations
-        // setup_field_dependencies(frm); // تابع موجود نیست - حذف شد
-        
-        // Set up Persian translations for select field
-        setup_persian_select_translations(frm);
-        
-        add_all_buttons(frm);
-        
-        // Add manual material price update button
-        if (!frm.is_new()) {
-            frm.add_custom_button(__('به‌روزرسانی با قیمت‌های دستی'), function() {
-                update_prices_with_manual_materials(frm);
-            }, __('عملیات اصلی'));
-            
-            frm.add_custom_button(__('نمایش تأثیر قیمت‌های دستی'), function() {
-                show_manual_price_impact(frm);
-            }, __('گزارش'));
-            
-            frm.add_custom_button(__('🔍 نمایش محصولات بدون BOM'), function() {
-                show_items_without_bom(frm);
-            }, __('گزارش'));
-            
-            // اضافه کردن دکمه‌های جایگزینی مواد
-            add_material_substitution_buttons(frm);
-            
-            // اضافه کردن دکمه‌های مواد اولیه بدون قیمت
-            add_missing_material_buttons(frm);
-            
-            // اضافه کردن دکمه گزارش تغییرات قیمت
-            add_price_change_report_button(frm);
+        // بارگذاری Chart.js اگر لود نشده باشد
+        if (typeof Chart === "undefined") {
+            console.log("Loading Chart.js...");
+            const script = document.createElement("script");
+            script.src = "https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.js";
+            script.onload = function() { console.log("Chart.js loaded successfully"); };
+            document.head.appendChild(script);
         }
         
+        // اضافه کردن دکمه‌های اصلی
+        frm.add_custom_button(__('محاسبه بهای تمام شده'), function() {
+            calculate_full_costing(frm);
+        }, __('عملیات اصلی'));
+        
+        frm.add_custom_button(__('نمایش تأثیر قیمت‌های دستی'), function() {
+            show_manual_price_impact(frm);
+        }, __('گزارش'));
+        
+        frm.add_custom_button(__('🔍 نمایش محصولات بدون BOM'), function() {
+            show_items_without_bom(frm);
+        }, __('گزارش'));
+        
+        frm.add_custom_button(__('📊 جزئیات هزینه محصولات'), function() {
+            show_item_cost_breakdown_dialog(frm);
+        }, __('گزارش'));
+        
+        // اضافه کردن دکمه‌های جایگزینی مواد
+        add_material_substitution_buttons(frm);
+        
+        // اضافه کردن دکمه‌های مواد اولیه بدون قیمت
+        add_missing_material_buttons(frm);
+        
+        // اضافه کردن دکمه گزارش تغییرات قیمت
+        add_price_change_report_button(frm);
+        
+        // محاسبه تحلیل نقطه سر به سر اگر کالا وجود دارد
+        if (frm.doc.items && frm.doc.items.length > 0) {
+            calculate_break_even_analysis(frm);
+            // رندر نمودارهای پیشرفته
+            render_advanced_analytics(frm);
+        }
         // Auto-refresh when items are loaded
         if (frm.doc.items && frm.doc.items.length > 0) {
             frm.refresh_fields();
@@ -132,7 +138,68 @@ frappe.ui.form.on('Auto Price List', {
 
     remove_no_bom_items_button: function(frm) {
         console.log("remove_no_bom_items_button clicked");
-        remove_items_without_bom(frm);
+        remove_items_without_submitted_bom(frm);
+    },
+
+    // فیلتر پیشرفته
+    apply_filters_button: function(frm) {
+        console.log("apply_filters_button clicked");
+        apply_advanced_filters(frm);
+    },
+
+    clear_filters_button: function(frm) {
+        console.log("clear_filters_button clicked");
+        clear_advanced_filters(frm);
+    },
+
+    enable_advanced_filter: function(frm) {
+        if (frm.doc.enable_advanced_filter) {
+            // نمایش پیام راهنما
+            frappe.show_alert({
+                message: 'فیلتر پیشرفته فعال شد. فیلترهای خود را تنظیم کرده و دکمه "اعمال فیلتر" را بزنید.',
+                indicator: 'blue'
+            });
+        }
+    },
+
+    // قیمت‌گذاری دستی
+    add_filtered_items_button: function(frm) {
+        console.log("add_filtered_items_button clicked");
+        add_filtered_items_to_bulk_pricing(frm);
+    },
+
+    apply_bulk_pricing_button: function(frm) {
+        console.log("apply_bulk_pricing_button clicked");
+        apply_bulk_pricing_changes(frm);
+    },
+
+    clear_bulk_pricing_button: function(frm) {
+        console.log("clear_bulk_pricing_button clicked");
+        clear_bulk_pricing_table(frm);
+    },
+
+    select_all_items_button: function(frm) {
+        console.log("select_all_items_button clicked");
+        select_all_bulk_items(frm, true);
+    },
+
+    deselect_all_items_button: function(frm) {
+        console.log("deselect_all_items_button clicked");
+        select_all_bulk_items(frm, false);
+    },
+
+    // تحلیل مالی
+    monthly_fixed_costs: function(frm) {
+        calculate_break_even_analysis(frm);
+    },
+
+    target_monthly_revenue: function(frm) {
+        calculate_break_even_analysis(frm);
+    },
+
+    load_fixed_costs_button: function(frm) {
+        console.log("load_fixed_costs_button clicked");
+        load_automatic_fixed_costs(frm);
     },
     
     selected_price_type: function(frm) {
@@ -3011,7 +3078,79 @@ function remove_filtered_items(frm) {
     );
 }
 
-// Function to remove items without active BOM
+// Function to remove items without submitted BOM (both no BOM and unsubmitted BOM)
+function remove_items_without_submitted_bom(frm) {
+    if (!frm.doc.items || frm.doc.items.length === 0) {
+        frappe.msgprint(__('هیچ کالایی برای بررسی وجود ندارد'));
+        return;
+    }
+
+    // Call Python method to get BOM status
+    frappe.call({
+        method: 'pricing.pricing.doctype.auto_price_list.auto_price_list.get_items_bom_status',
+        args: {
+            doctype: frm.doc.doctype,
+            name: frm.doc.name
+        }
+    }).then(r => {
+        if (r.message) {
+            let itemsWithoutBom = r.message.items_without_bom || [];
+            let itemsWithUnsubmittedBom = r.message.items_with_unsubmitted_bom || [];
+            let allItemsToRemove = [...itemsWithoutBom, ...itemsWithUnsubmittedBom];
+            
+            if (allItemsToRemove.length === 0) {
+                frappe.msgprint(__('همه کالاها دارای BOM ارسال شده هستند'));
+                return;
+            }
+
+            // Create a set of item codes to remove for faster lookup
+            let itemsToRemoveSet = new Set(allItemsToRemove.map(item => item.item_code));
+            
+            // Filter items to keep only those with submitted BOM
+            let itemsToKeep = [];
+            frm.doc.items.forEach((item) => {
+                if (!itemsToRemoveSet.has(item.item_code)) {
+                    itemsToKeep.push(item);
+                }
+            });
+
+            // Create detailed message
+            let redItems = itemsWithoutBom.map(item => 
+                `${item.item_name} (بدون BOM)`
+            );
+            let yellowItems = itemsWithUnsubmittedBom.map(item => 
+                `${item.item_name} (BOM ارسال نشده)`
+            );
+            let detailMessage = [...redItems, ...yellowItems].join('<br>');
+
+            // Confirm removal
+            frappe.confirm(
+                __('آیا مطمئن هستید که می‌خواهید {0} کالای بدون BOM ارسال شده را حذف کنید؟<br><br>کالاهای حذف شده:<br>{1}', 
+                   [allItemsToRemove.length, detailMessage]),
+                function() {
+                    // Remove items
+                    frm.clear_table('items');
+                    itemsToKeep.forEach(item => {
+                        frm.add_child('items', item);
+                    });
+                    
+                    frm.refresh_field('items');
+                    frm.dirty();
+                    
+                    frappe.msgprint({
+                        title: __('موفق'),
+                        message: __('تعداد {0} کالای بدون BOM ارسال شده با موفقیت حذف شد', [allItemsToRemove.length]),
+                        indicator: 'green'
+                    });
+                }
+            );
+        } else {
+            frappe.msgprint(__('خطا در دریافت وضعیت BOM کالاها'));
+        }
+    });
+}
+
+// Function to remove items without active BOM (old function - kept for compatibility)
 function remove_items_without_bom(frm) {
     if (!frm.doc.items || frm.doc.items.length === 0) {
         frappe.msgprint(__('هیچ کالایی برای بررسی وجود ندارد'));
@@ -3019,7 +3158,13 @@ function remove_items_without_bom(frm) {
     }
 
     // Call Python method to get BOM status - using existing function
-    frm.call('get_items_bom_status').then(r => {
+    frappe.call({
+        method: 'pricing.pricing.doctype.auto_price_list.auto_price_list.get_items_bom_status',
+        args: {
+            doctype: frm.doc.doctype,
+            name: frm.doc.name
+        }
+    }).then(r => {
         if (r.message && r.message.items_without_bom) {
             let itemsWithoutBom = r.message.items_without_bom;
             let itemsToKeep = [];
@@ -3073,20 +3218,33 @@ function remove_items_without_bom(frm) {
 
 function apply_bom_status_styling(frm) {
     /**
-     * اعمال رنگ‌آمیزی به ردیف‌های محصولاتی که BOM فعال ندارند
+     * اعمال رنگ‌آمیزی به ردیف‌های محصولات بر اساس وضعیت BOM:
+     * - قرمز: بدون BOM فعال
+     * - زرد: BOM دارند اما ارسال نشده
+     * - سبز: BOM ارسال شده
      */
     if (!frm.doc.items || frm.doc.items.length === 0) {
         return;
     }
     
     // فراخوانی تابع Python برای دریافت وضعیت BOM محصولات
-    frm.call('get_items_bom_status').then(r => {
-        if (r.message && r.message.items_without_bom) {
-            const items_without_bom = r.message.items_without_bom;
+    frappe.call({
+        method: 'pricing.pricing.doctype.auto_price_list.auto_price_list.get_items_bom_status',
+        args: {
+            doctype: frm.doc.doctype,
+            name: frm.doc.name
+        }
+    }).then(r => {
+        if (r.message) {
+            const items_without_bom = r.message.items_without_bom || [];
+            const items_with_unsubmitted_bom = r.message.items_with_unsubmitted_bom || [];
             
-            // ایجاد مجموعه‌ای از item_code های بدون BOM برای جستجوی سریع
+            // ایجاد مجموعه‌های item_code برای جستجوی سریع
             const items_without_bom_set = new Set(
                 items_without_bom.map(item => item.item_code)
+            );
+            const items_with_unsubmitted_bom_set = new Set(
+                items_with_unsubmitted_bom.map(item => item.item_code)
             );
             
             // اعمال استایل به ردیف‌های جدول
@@ -3104,42 +3262,45 @@ function apply_bom_status_styling(frm) {
                             const item_code = item_code_cell.find('input, .static-area').val() || 
                                             item_code_cell.find('.static-area').text().trim();
                             
+                            // حذف استایل‌های قبلی
+                            row.removeClass('bom-status-red bom-status-yellow bom-status-green');
+                            row.find('.bom-warning-icon, .bom-success-icon').remove();
+                            row.css({
+                                'background-color': '',
+                                'border-left': ''
+                            });
+                            
                             if (items_without_bom_set.has(item_code)) {
-                                // اعمال رنگ قرمز به کل ردیف
+                                // رنگ قرمز: بدون BOM فعال
                                 row.css({
                                     'background-color': '#ffebee',
                                     'border-left': '4px solid #f44336'
                                 });
-                                
-                                // اضافه کردن آیکون هشدار
-                                if (!row.find('.bom-warning-icon').length) {
-                                    const warning_icon = $(`
-                                        <span class="bom-warning-icon" style="
-                                            color: #f44336; 
-                                            font-weight: bold; 
-                                            margin-left: 5px;
-                                            font-size: 14px;
-                                        " title="این محصول BOM فعال ندارد">⚠️</span>
-                                    `);
-                                    item_code_cell.append(warning_icon);
-                                }
-                            } else {
-                                // حذف رنگ‌آمیزی اگر محصول BOM دارد
+                            } else if (items_with_unsubmitted_bom_set.has(item_code)) {
+                                // رنگ زرد: BOM دارد اما ارسال نشده
                                 row.css({
-                                    'background-color': '',
-                                    'border-left': ''
+                                    'background-color': '#fff8e1',
+                                    'border-left': '4px solid #ff9800'
                                 });
-                                row.find('.bom-warning-icon').remove();
                             }
+                            // محصولات با BOM ارسال شده: بدون رنگ‌بندی (حالت عادی)
                         }
                     });
                 }
             }, 100);
             
             // نمایش پیام اطلاع‌رسانی
+            let alertMessages = [];
             if (items_without_bom.length > 0) {
+                alertMessages.push(`${items_without_bom.length} محصول BOM ندارند`);
+            }
+            if (items_with_unsubmitted_bom.length > 0) {
+                alertMessages.push(`${items_with_unsubmitted_bom.length} محصول BOM ارسال نشده دارند`);
+            }
+            
+            if (alertMessages.length > 0) {
                 frappe.show_alert({
-                    message: `⚠️ ${items_without_bom.length} محصول BOM فعال ندارند (ردیف‌های قرمز)`,
+                    message: alertMessages.join(' | '),
                     indicator: 'orange'
                 });
             }
@@ -3151,7 +3312,13 @@ function show_items_without_bom(frm) {
     /**
      * نمایش لیست محصولاتی که BOM فعال ندارند
      */
-    frm.call('get_items_bom_status').then(r => {
+    frappe.call({
+        method: 'pricing.pricing.doctype.auto_price_list.auto_price_list.get_items_bom_status',
+        args: {
+            doctype: frm.doc.doctype,
+            name: frm.doc.name
+        }
+    }).then(r => {
         if (r.message) {
             const data = r.message;
             const items_without_bom = data.items_without_bom || [];
@@ -3677,4 +3844,1771 @@ function display_price_change_report(data) {
     dialog.fields_dict.price_changes_table.$wrapper.html(table_html);
     
     dialog.show();
+}
+
+function calculate_full_costing(frm) {
+    console.log('🚀 calculate_full_costing called for doc:', frm.doc.name);
+    
+    frappe.confirm(
+        'آیا می‌خواهید بهای تمام شده برای تمام آیتم‌ها محاسبه شود؟<br><br>' +
+        '<small>این عملیات تمام هزینه‌ها را به‌روزرسانی می‌کند:<br>' +
+        '• هزینه مواد اولیه<br>' +
+        '• هزینه‌های عملیاتی (برق، اجاره، کارگر، مصرفی)<br>' +
+        '• هزینه پیمانکاری<br>' +
+        '• هزینه سربار</small>',
+        function() {
+            console.log('🚀 User confirmed, calling calculate_full_costing...');
+            
+            frappe.show_alert({
+                message: 'در حال محاسبه بهای تمام شده...',
+                indicator: 'blue'
+            });
+            
+            frappe.call({
+                method: 'calculate_full_costing',
+                doc: frm.doc
+            }).then((response) => {
+                console.log('✅ calculate_full_costing completed, response:', response);
+                
+                if (response && response.message) {
+                    const result = response.message;
+                    
+                    if (result.success) {
+                        frappe.show_alert({
+                            message: result.message,
+                            indicator: 'green'
+                        });
+                        
+                        // Refresh the form to show updated data
+                        if (result.refresh_needed) {
+                            console.log('🔄 Refreshing form after full costing calculation...');
+                            
+                            // Force refresh of items table
+                            if (frm.fields_dict.items && frm.fields_dict.items.grid) {
+                                frm.fields_dict.items.grid.refresh();
+                            }
+                            
+                            // Reload document
+                            frm.reload_doc().then(() => {
+                                console.log('📄 Document reloaded successfully');
+                                frm.refresh_field('items');
+                            });
+                        }
+                    } else {
+                        frappe.show_alert({
+                            title: 'خطا',
+                            message: result.message || 'خطای نامشخص در محاسبه بهای تمام شده',
+                            indicator: 'red'
+                        });
+                    }
+                } else {
+                    frappe.show_alert({
+                        title: 'خطا',
+                        message: 'پاسخی از سرور دریافت نشد',
+                        indicator: 'red'
+                    });
+                }
+            }).catch((error) => {
+                console.error('❌ Error in calculate_full_costing:', error);
+                frappe.msgprint({
+                    title: 'خطا',
+                    message: 'خطا در محاسبه بهای تمام شده: ' + (error.message || error),
+                    indicator: 'red'
+                });
+            });
+        },
+        function() {
+            console.log('❌ User cancelled the full costing calculation');
+        }
+    );
+}
+
+function show_item_cost_breakdown_dialog(frm) {
+    console.log('📊 show_item_cost_breakdown_dialog called');
+    
+    if (!frm.doc.items || frm.doc.items.length === 0) {
+        frappe.msgprint(__('هیچ محصولی برای نمایش جزئیات هزینه وجود ندارد'));
+        return;
+    }
+    
+    // ایجاد لیست محصولات برای انتخاب
+    let item_options = frm.doc.items.map(item => ({
+        label: `${item.item_code} - ${item.item_name || item.item_code}`,
+        value: item.item_code
+    }));
+    
+    let dialog = new frappe.ui.Dialog({
+        title: '📊 انتخاب محصول برای نمایش جزئیات هزینه',
+        fields: [
+            {
+                fieldtype: 'Select',
+                fieldname: 'selected_item',
+                label: 'انتخاب محصول',
+                options: item_options,
+                reqd: 1
+            },
+            {
+                fieldtype: 'Button',
+                fieldname: 'show_breakdown',
+                label: 'نمایش جزئیات هزینه'
+            }
+        ],
+        primary_action_label: 'نمایش جزئیات',
+        primary_action: function(values) {
+            if (values.selected_item) {
+                show_item_cost_breakdown(frm, values.selected_item);
+                dialog.hide();
+            }
+        }
+    });
+    
+    dialog.show();
+}
+
+function show_item_cost_breakdown(frm, item_code) {
+    console.log('📊 Getting cost breakdown for item:', item_code);
+    
+    frappe.show_alert({
+        message: 'در حال دریافت جزئیات هزینه...',
+        indicator: 'blue'
+    });
+    
+    frappe.call({
+        method: 'get_item_cost_breakdown',
+        doc: frm.doc,
+        args: {
+            item_code: item_code
+        }
+    }).then((response) => {
+        console.log('✅ Cost breakdown response:', response);
+        
+        if (response && response.message && response.message.success) {
+            const data = response.message;
+            display_cost_breakdown_dialog(data);
+        } else {
+            frappe.msgprint({
+                title: 'خطا',
+                message: response.message?.message || 'خطا در دریافت جزئیات هزینه',
+                indicator: 'red'
+            });
+        }
+    }).catch((error) => {
+        console.error('❌ Error getting cost breakdown:', error);
+        frappe.msgprint({
+            title: 'خطا',
+            message: 'خطا در دریافت جزئیات هزینه: ' + (error.message || error),
+            indicator: 'red'
+        });
+    });
+}
+
+function display_cost_breakdown_dialog(data) {
+    console.log('📊 Displaying comprehensive cost breakdown for:', data.item_code);
+    
+    // ایجاد HTML برای نمایش جزئیات جامع
+    let html = `
+        <div style="padding: 20px; direction: rtl; font-family: 'Vazir', Arial, sans-serif;">
+            <div style="margin-bottom: 20px; text-align: center;">
+                <h2 style="color: #2196F3; margin-bottom: 10px;">
+                    📊 گزارش جامع هزینه محصول (تمام سطوح BOM)
+                </h2>
+                <h3 style="color: #666; margin-bottom: 20px;">
+                    ${data.item_code} - ${data.item_name}
+                </h3>
+                <p style="color: #888; font-size: 14px;">BOM اصلی: ${data.bom_name}</p>
+            </div>
+            
+            <!-- خلاصه هزینه‌ها -->
+            <div style="background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%); padding: 20px; border-radius: 12px; margin-bottom: 25px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+                <h4 style="color: #333; margin-bottom: 20px; text-align: center;">💰 خلاصه کل هزینه‌ها (از تمام سطوح)</h4>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 15px;">
+                    <div style="background: white; padding: 15px; border-radius: 8px; text-align: center;">
+                        <div style="color: #4CAF50; font-size: 14px; margin-bottom: 5px;">💎 مواد اولیه (از exploded_items)</div>
+                        <div style="font-size: 18px; font-weight: bold;">${format_currency(data.raw_material_cost)}</div>
+                    </div>
+                    <div style="background: white; padding: 15px; border-radius: 8px; text-align: center;">
+                        <div style="color: #2196F3; font-size: 14px; margin-bottom: 5px;">🔧 عملیات (تمام سطوح)</div>
+                        <div style="font-size: 18px; font-weight: bold;">${format_currency(data.total_operation_cost)}</div>
+                    </div>
+                    <div style="background: white; padding: 15px; border-radius: 8px; text-align: center;">
+                        <div style="color: #FF9800; font-size: 14px; margin-bottom: 5px;">📊 سربار</div>
+                        <div style="font-size: 18px; font-weight: bold;">${format_currency(data.overhead_cost)}</div>
+                    </div>
+                    <div style="background: #e8f5e8; padding: 15px; border-radius: 8px; text-align: center; grid-column: 1 / -1;">
+                        <div style="color: #2E7D32; font-size: 16px; margin-bottom: 5px;">🎯 مجموع کل</div>
+                        <div style="font-size: 24px; font-weight: bold; color: #1B5E20;">${format_currency(data.total_cost)}</div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- تفکیک هزینه‌های عملیاتی -->
+            <div style="background: #fff3e0; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
+                <h4 style="color: #333; margin-bottom: 15px;">⚡ تفکیک هزینه‌های عملیاتی</h4>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; font-size: 14px;">
+                    <div>💡 برق: <strong>${format_currency(data.total_operation_costs.electricity_cost || 0)}</strong></div>
+                    <div>🏠 اجاره: <strong>${format_currency(data.total_operation_costs.rent_cost || 0)}</strong></div>
+                    <div>👷 کارگر: <strong>${format_currency(data.total_operation_costs.labor_cost || 0)}</strong></div>
+                    <div>📦 مصرفی: <strong>${format_currency(data.total_operation_costs.consumable_cost || 0)}</strong></div>
+                    <div>🔨 پیمانکاری: <strong>${format_currency(data.total_operation_costs.subcontracting_cost || 0)}</strong></div>
+                </div>
+            </div>
+            
+            <!-- جزئیات تمام عملیات (تمام سطوح) -->
+            <div style="margin-bottom: 20px;">
+                <h4 style="color: #333; margin-bottom: 15px;">🔧 جزئیات تمام عملیات (از تمام سطوح BOM)</h4>
+    `;
+    
+    if (data.operations_breakdown && data.operations_breakdown.length > 0) {
+        // گروه‌بندی عملیات بر اساس سطح
+        const operationsByLevel = {};
+        data.operations_breakdown.forEach(operation => {
+            const level = operation.level || 0;
+            if (!operationsByLevel[level]) {
+                operationsByLevel[level] = [];
+            }
+            operationsByLevel[level].push(operation);
+        });
+        
+        // نمایش عملیات بر اساس سطح
+        Object.keys(operationsByLevel).sort().forEach(level => {
+            const levelOperations = operationsByLevel[level];
+            const levelColor = level == 0 ? '#e3f2fd' : level == 1 ? '#f3e5f5' : '#e8f5e8';
+            
+            html += `
+                <div style="margin-bottom: 20px; border: 2px solid #ddd; border-radius: 10px; overflow: hidden;">
+                    <div style="background: ${levelColor}; padding: 12px; font-weight: bold; text-align: center;">
+                        📋 سطح ${level} ${level == 0 ? '(اصلی)' : '(فرعی)'}
+                    </div>
+            `;
+            
+            levelOperations.forEach((operation, index) => {
+                const total_op_cost = Object.values(operation.costs).reduce((sum, cost) => sum + cost, 0);
+                const qtyInfo = operation.qty_factor && operation.qty_factor !== 1 ? 
+                    ` (ضریب مقدار: ${operation.qty_factor})` : '';
+                const parentInfo = operation.parent_item ? 
+                    `<div style="font-size: 12px; color: #666; margin-bottom: 5px;">🔗 جزء: ${operation.parent_item}</div>` : '';
+                
+                html += `
+                    <div style="border-top: 1px solid #ddd; background: white;">
+                        <div style="background: #f8f9fa; padding: 12px; border-bottom: 1px solid #eee;">
+                            ${parentInfo}
+                            <strong>${operation.operation}</strong>
+                            ${operation.workstation ? ` - ${operation.workstation}` : ''}
+                            <span style="float: left; color: #666;">
+                                ${operation.time_in_mins || 0} دقیقه (${(operation.time_in_hours || 0).toFixed(2)} ساعت)${qtyInfo}
+                            </span>
+                            <div style="clear: both;"></div>
+                            ${operation.bom_name ? `<div style="font-size: 11px; color: #888;">BOM: ${operation.bom_name}</div>` : ''}
+                        </div>
+                        <div style="padding: 12px;">
+                            ${operation.description ? `<p style="color: #666; margin-bottom: 10px; font-style: italic;">${operation.description}</p>` : ''}
+                            
+                            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 8px; font-size: 13px; margin-bottom: 10px;">
+                                <div style="background: #fff3e0; padding: 8px; border-radius: 4px;">💡 برق: ${format_currency((operation.costs && operation.costs.electricity_cost) || 0)}</div>
+                                <div style="background: #e8f5e8; padding: 8px; border-radius: 4px;">🏠 اجاره: ${format_currency((operation.costs && operation.costs.rent_cost) || 0)}</div>
+                                <div style="background: #e3f2fd; padding: 8px; border-radius: 4px;">👷 کارگر: ${format_currency((operation.costs && operation.costs.labor_cost) || 0)}</div>
+                                <div style="background: #fce4ec; padding: 8px; border-radius: 4px;">📦 مصرفی: ${format_currency((operation.costs && operation.costs.consumable_cost) || 0)}</div>
+                                <div style="background: #f3e5f5; padding: 8px; border-radius: 4px;">🔨 پیمانکاری: ${format_currency((operation.costs && operation.costs.subcontracting_cost) || 0)}</div>
+                            </div>
+                            
+                            ${operation.workstation_rates && Object.keys(operation.workstation_rates).length > 0 ? `
+                                <div style="margin-top: 10px; padding: 10px; background: #f8f9fa; border-radius: 6px; font-size: 12px; color: #666;">
+                                    <strong>📊 نرخ‌های ساعتی workstation:</strong><br>
+                                    برق: ${format_currency(operation.workstation_rates.hour_rate_electricity)}/ساعت، 
+                                    اجاره: ${format_currency(operation.workstation_rates.hour_rate_rent)}/ساعت، 
+                                    کارگر: ${format_currency(operation.workstation_rates.hour_rate_labour)}/ساعت، 
+                                    مصرفی: ${format_currency(operation.workstation_rates.hour_rate_consumable)}/ساعت
+                                </div>
+                            ` : ''}
+                            
+                            <div style="text-align: left; margin-top: 15px; padding: 10px; background: linear-gradient(90deg, #e3f2fd, #bbdefb); border-radius: 6px;">
+                                <strong style="color: #1976d2;">💰 مجموع این عملیات: ${format_currency(total_op_cost)}</strong>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            html += '</div>';
+        });
+    } else {
+        html += '<p style="color: #666; text-align: center; padding: 20px; background: #f5f5f5; border-radius: 8px;">هیچ عملیاتی در هیچ سطحی تعریف نشده است</p>';
+    }
+    
+    html += '</div>';
+    
+    // نمایش ساختار سطوح BOM
+    if (data.bom_levels && data.bom_levels.length > 0) {
+        html += `
+            <div style="margin-bottom: 20px;">
+                <h4 style="color: #333; margin-bottom: 15px;">🏗️ ساختار سطوح BOM</h4>
+        `;
+        
+        data.bom_levels.forEach(level_info => {
+            const indentStyle = `margin-right: ${level_info.level * 20}px;`;
+            const levelColor = level_info.level === 0 ? '#e8f5e8' : '#f0f4f8';
+            
+            html += `
+                <div style="${indentStyle} border: 1px solid #ddd; border-radius: 8px; margin-bottom: 10px; background: ${levelColor};">
+                    <div style="padding: 12px;">
+                        <strong>📋 سطح ${level_info.level}: ${level_info.item_code}</strong> - ${level_info.item_name}
+                        <div style="font-size: 12px; color: #666; margin-top: 5px;">BOM: ${level_info.bom_name}</div>
+                        
+                        ${level_info.sub_items && level_info.sub_items.length > 0 ? `
+                            <div style="margin-top: 10px; font-size: 13px;">
+                                <strong>اجزاء:</strong>
+                                ${level_info.sub_items.map(sub_item => 
+                                    `<span style="display: inline-block; margin: 2px 5px; padding: 2px 8px; background: white; border-radius: 4px; border: 1px solid #ddd;">
+                                        ${sub_item.item_code} ${sub_item.has_bom ? '🔗' : '📦'} (${sub_item.qty})
+                                    </span>`
+                                ).join('')}
+                            </div>
+                        ` : ''}
+                    </div>
+                </div>
+            `;
+        });
+        
+        html += '</div>';
+    }
+    
+    html += '</div>';
+    
+    // نمایش دیالوگ
+    let breakdown_dialog = new frappe.ui.Dialog({
+        title: `📊 گزارش جامع هزینه: ${data.item_code}`,
+        fields: [
+            {
+                fieldtype: 'HTML',
+                fieldname: 'breakdown_html'
+            }
+        ],
+        size: 'extra-large'
+    });
+    
+    breakdown_dialog.fields_dict.breakdown_html.$wrapper.html(html);
+    breakdown_dialog.show();
+}
+
+// ==================== فیلتر و مرتب‌سازی پیشرفته ====================
+
+function apply_advanced_filters(frm) {
+    /**
+     * اعمال فیلترهای پیشرفته به جدول items
+     */
+    if (!frm.doc.items || frm.doc.items.length === 0) {
+        frappe.msgprint(__('هیچ کالایی برای فیلتر کردن وجود ندارد'));
+        return;
+    }
+
+    // ذخیره کپی از items اصلی اگر وجود ندارد
+    if (!frm._original_items) {
+        frm._original_items = JSON.parse(JSON.stringify(frm.doc.items));
+    }
+
+    let filtered_items = [...frm._original_items];
+    let filter_count = 0;
+
+    // 1. فیلتر نام کالا
+    if (frm.doc.filter_item_name && frm.doc.filter_item_name.trim()) {
+        const search_terms = frm.doc.filter_item_name.split(',').map(term => term.trim().toLowerCase());
+        filtered_items = filtered_items.filter(item => {
+            const item_name = (item.item_name || '').toLowerCase();
+            const item_code = (item.item_code || '').toLowerCase();
+            return search_terms.some(term => 
+                item_name.includes(term) || item_code.includes(term)
+            );
+        });
+        filter_count++;
+    }
+
+    // 2. فیلتر گروه کالا
+    if (frm.doc.filter_item_group && frm.doc.filter_item_group.length > 0) {
+        const selected_groups = frm.doc.filter_item_group;
+        filtered_items = filtered_items.filter(item => 
+            selected_groups.includes(item.item_group)
+        );
+        filter_count++;
+    }
+
+    // 3. فیلتر برند
+    if (frm.doc.filter_brand && frm.doc.filter_brand.length > 0) {
+        const selected_brands = frm.doc.filter_brand;
+        filtered_items = filtered_items.filter(item => 
+            selected_brands.includes(item.brand)
+        );
+        filter_count++;
+    }
+
+    // 4. فیلتر انبار
+    if (frm.doc.filter_warehouse && frm.doc.filter_warehouse.length > 0) {
+        const selected_warehouses = frm.doc.filter_warehouse;
+        filtered_items = filtered_items.filter(item => 
+            selected_warehouses.includes(item.warehouse)
+        );
+        filter_count++;
+    }
+
+    // 5. فیلتر وضعیت BOM
+    if (frm.doc.filter_bom_status) {
+        // دریافت وضعیت BOM برای فیلتر کردن
+        frappe.call({
+            method: 'pricing.pricing.doctype.auto_price_list.auto_price_list.get_items_bom_status',
+            args: {
+                doctype: frm.doc.doctype,
+                name: frm.doc.name
+            }
+        }).then(r => {
+            if (r.message) {
+                const items_without_bom = new Set((r.message.items_without_bom || []).map(item => item.item_code));
+                const items_with_unsubmitted_bom = new Set((r.message.items_with_unsubmitted_bom || []).map(item => item.item_code));
+
+                if (frm.doc.filter_bom_status === 'بدون BOM') {
+                    filtered_items = filtered_items.filter(item => items_without_bom.has(item.item_code));
+                } else if (frm.doc.filter_bom_status === 'با BOM ارسال نشده') {
+                    filtered_items = filtered_items.filter(item => items_with_unsubmitted_bom.has(item.item_code));
+                } else if (frm.doc.filter_bom_status === 'با BOM ارسال شده') {
+                    filtered_items = filtered_items.filter(item => 
+                        !items_without_bom.has(item.item_code) && !items_with_unsubmitted_bom.has(item.item_code)
+                    );
+                }
+
+                // ادامه پردازش با مرتب‌سازی
+                finish_filtering_and_sorting(frm, filtered_items, filter_count + 1);
+            }
+        });
+        return; // خروج زودهنگام چون async است
+    }
+
+    // اگر فیلتر BOM نداشتیم، مستقیماً ادامه می‌دهیم
+    finish_filtering_and_sorting(frm, filtered_items, filter_count);
+}
+
+function finish_filtering_and_sorting(frm, filtered_items, filter_count) {
+    /**
+     * تکمیل فیلتر و اعمال مرتب‌سازی
+     */
+    
+    // 6. مرتب‌سازی
+    if (frm.doc.sort_by_field) {
+        const sort_field = frm.doc.sort_by_field;
+        const sort_order = frm.doc.sort_order || 'صعودی';
+        const ascending = sort_order === 'صعودی';
+
+        filtered_items.sort((a, b) => {
+            let valueA, valueB;
+
+            switch (sort_field) {
+                case 'نام کالا':
+                    valueA = (a.item_name || '').toLowerCase();
+                    valueB = (b.item_name || '').toLowerCase();
+                    break;
+                case 'گروه کالا':
+                    valueA = (a.item_group || '').toLowerCase();
+                    valueB = (b.item_group || '').toLowerCase();
+                    break;
+                case 'برند':
+                    valueA = (a.brand || '').toLowerCase();
+                    valueB = (b.brand || '').toLowerCase();
+                    break;
+                case 'هزینه کل':
+                    valueA = parseFloat(a.total_cost || 0);
+                    valueB = parseFloat(b.total_cost || 0);
+                    break;
+                case 'قیمت فروش':
+                    valueA = parseFloat(a.selling_price || 0);
+                    valueB = parseFloat(b.selling_price || 0);
+                    break;
+                case 'سود':
+                    valueA = parseFloat(a.profit_amount || 0);
+                    valueB = parseFloat(b.profit_amount || 0);
+                    break;
+                case 'درصد سود':
+                    valueA = parseFloat(a.profit_percentage || 0);
+                    valueB = parseFloat(b.profit_percentage || 0);
+                    break;
+                default:
+                    valueA = (a.item_name || '').toLowerCase();
+                    valueB = (b.item_name || '').toLowerCase();
+            }
+
+            if (typeof valueA === 'string') {
+                return ascending ? valueA.localeCompare(valueB) : valueB.localeCompare(valueA);
+            } else {
+                return ascending ? valueA - valueB : valueB - valueA;
+            }
+        });
+    }
+
+    // اعمال فیلتر به جدول
+    frm.clear_table('items');
+    filtered_items.forEach(item => {
+        frm.add_child('items', item);
+    });
+    
+    frm.refresh_field('items');
+    frm.dirty();
+
+    // نمایش پیام نتیجه
+    const original_count = frm._original_items.length;
+    const filtered_count = filtered_items.length;
+    
+    let message = `فیلتر اعمال شد: ${filtered_count} از ${original_count} کالا نمایش داده می‌شود`;
+    if (filter_count > 0) {
+        message += ` (${filter_count} فیلتر فعال)`;
+    }
+    if (frm.doc.sort_by_field) {
+        message += ` - مرتب شده بر اساس ${frm.doc.sort_by_field}`;
+    }
+
+    frappe.show_alert({
+        message: message,
+        indicator: filtered_count < original_count ? 'orange' : 'green'
+    });
+}
+
+function clear_advanced_filters(frm) {
+    /**
+     * پاک کردن تمام فیلترها و بازگردانی items اصلی
+     */
+    
+    // پاک کردن فیلدهای فیلتر
+    frm.set_value('filter_item_name', '');
+    frm.set_value('filter_item_group', []);
+    frm.set_value('filter_brand', []);
+    frm.set_value('filter_warehouse', []);
+    frm.set_value('filter_bom_status', '');
+    frm.set_value('sort_by_field', '');
+    frm.set_value('sort_order', 'صعودی');
+
+    // بازگردانی items اصلی
+    if (frm._original_items) {
+        frm.clear_table('items');
+        frm._original_items.forEach(item => {
+            frm.add_child('items', item);
+        });
+        
+        frm.refresh_field('items');
+        frm.dirty();
+
+        frappe.show_alert({
+            message: `تمام فیلترها پاک شدند - ${frm._original_items.length} کالا نمایش داده می‌شود`,
+            indicator: 'blue'
+        });
+    } else {
+        frappe.show_alert({
+            message: 'هیچ فیلتری برای پاک کردن وجود ندارد',
+            indicator: 'yellow'
+        });
+    }
+}
+
+// ==================== قیمت‌گذاری دستی ====================
+
+function add_filtered_items_to_bulk_pricing(frm) {
+    /**
+     * اضافه کردن کالاهای فیلتر شده به جدول قیمت‌گذاری دستی
+     */
+    if (!frm.doc.items || frm.doc.items.length === 0) {
+        frappe.msgprint(__('هیچ کالایی در جدول items وجود ندارد'));
+        return;
+    }
+
+    // فیلتر کردن items بر اساس فیلترهای bulk pricing
+    let filtered_items = [...frm.doc.items];
+    let filter_count = 0;
+
+    // 1. فیلتر نام کالا
+    if (frm.doc.bulk_filter_item_name && frm.doc.bulk_filter_item_name.trim()) {
+        const search_terms = frm.doc.bulk_filter_item_name.split(',').map(term => term.trim().toLowerCase());
+        filtered_items = filtered_items.filter(item => {
+            const item_name = (item.item_name || '').toLowerCase();
+            const item_code = (item.item_code || '').toLowerCase();
+            return search_terms.some(term => 
+                item_name.includes(term) || item_code.includes(term)
+            );
+        });
+        filter_count++;
+    }
+
+    // 2. فیلتر گروه کالا
+    if (frm.doc.bulk_filter_item_group) {
+        filtered_items = filtered_items.filter(item => 
+            item.item_group === frm.doc.bulk_filter_item_group
+        );
+        filter_count++;
+    }
+
+    // 3. فیلتر برند
+    if (frm.doc.bulk_filter_brand) {
+        filtered_items = filtered_items.filter(item => 
+            item.brand === frm.doc.bulk_filter_brand
+        );
+        filter_count++;
+    }
+
+    // 4. فیلتر انبار
+    if (frm.doc.bulk_filter_warehouse) {
+        filtered_items = filtered_items.filter(item => 
+            item.warehouse === frm.doc.bulk_filter_warehouse
+        );
+        filter_count++;
+    }
+
+    // 5. فیلتر وضعیت BOM
+    if (frm.doc.bulk_filter_bom_status) {
+        // دریافت وضعیت BOM برای فیلتر کردن
+        frappe.call({
+            method: 'pricing.pricing.doctype.auto_price_list.auto_price_list.get_items_bom_status',
+            args: {
+                doctype: frm.doc.doctype,
+                name: frm.doc.name
+            }
+        }).then(r => {
+            if (r.message) {
+                const items_without_bom = new Set((r.message.items_without_bom || []).map(item => item.item_code));
+                const items_with_unsubmitted_bom = new Set((r.message.items_with_unsubmitted_bom || []).map(item => item.item_code));
+
+                if (frm.doc.bulk_filter_bom_status === 'بدون BOM') {
+                    filtered_items = filtered_items.filter(item => items_without_bom.has(item.item_code));
+                } else if (frm.doc.bulk_filter_bom_status === 'با BOM ارسال نشده') {
+                    filtered_items = filtered_items.filter(item => items_with_unsubmitted_bom.has(item.item_code));
+                } else if (frm.doc.bulk_filter_bom_status === 'با BOM ارسال شده') {
+                    filtered_items = filtered_items.filter(item => 
+                        !items_without_bom.has(item.item_code) && !items_with_unsubmitted_bom.has(item.item_code)
+                    );
+                }
+
+                // ادامه پردازش
+                finish_adding_bulk_items(frm, filtered_items, filter_count + 1);
+            }
+        });
+        return; // خروج زودهنگام چون async است
+    }
+
+    // اگر فیلتر BOM نداشتیم، مستقیماً ادامه می‌دهیم
+    finish_adding_bulk_items(frm, filtered_items, filter_count);
+}
+
+function finish_adding_bulk_items(frm, filtered_items, filter_count) {
+    /**
+     * تکمیل اضافه کردن کالاها به جدول bulk pricing
+     */
+    
+    if (filtered_items.length === 0) {
+        frappe.msgprint(__('هیچ کالایی با فیلترهای انتخاب شده پیدا نشد'));
+        return;
+    }
+
+    // بررسی کالاهای تکراری
+    const existing_items = new Set((frm.doc.bulk_pricing_items || []).map(item => item.item_code));
+    let added_count = 0;
+    let duplicate_count = 0;
+
+    filtered_items.forEach(item => {
+        if (!existing_items.has(item.item_code)) {
+            const bulk_item = frm.add_child('bulk_pricing_items');
+            bulk_item.selected = 1; // انتخاب پیش‌فرض
+            bulk_item.item_code = item.item_code;
+            bulk_item.item_name = item.item_name;
+            bulk_item.item_group = item.item_group;
+            bulk_item.brand = item.brand;
+            bulk_item.warehouse = item.warehouse;
+            bulk_item.total_cost = item.total_cost || 0;
+            bulk_item.electricity_cost = item.electricity_cost || 0;
+            bulk_item.consumable_cost = item.consumable_cost || 0;
+            bulk_item.rent_cost = item.rent_cost || 0;
+            bulk_item.labor_cost = item.labor_cost || 0;
+            bulk_item.subcontracting_cost = item.subcontracting_cost || 0;
+            bulk_item.overhead_cost = item.overhead_cost || 0;
+            
+            added_count++;
+        } else {
+            duplicate_count++;
+        }
+    });
+
+    frm.refresh_field('bulk_pricing_items');
+    frm.dirty();
+
+    // نمایش پیام نتیجه
+    let message = `${added_count} کالا به جدول قیمت‌گذاری دستی اضافه شد`;
+    if (filter_count > 0) {
+        message += ` (${filter_count} فیلتر اعمال شد)`;
+    }
+    if (duplicate_count > 0) {
+        message += ` - ${duplicate_count} کالا تکراری بود`;
+    }
+
+    frappe.show_alert({
+        message: message,
+        indicator: added_count > 0 ? 'green' : 'orange'
+    });
+}
+
+function apply_bulk_pricing_changes(frm) {
+    /**
+     * اعمال تغییرات قیمت‌گذاری دستی به جدول items اصلی
+     */
+    
+    if (!frm.doc.bulk_pricing_items || frm.doc.bulk_pricing_items.length === 0) {
+        frappe.msgprint(__('هیچ کالایی در جدول قیمت‌گذاری دستی وجود ندارد'));
+        return;
+    }
+
+    if (!frm.doc.selected_cost_fields) {
+        frappe.msgprint(__('لطفاً فیلد هزینه برای تغییر را انتخاب کنید'));
+        return;
+    }
+
+    if (!frm.doc.bulk_cost_amount || frm.doc.bulk_cost_amount <= 0) {
+        frappe.msgprint(__('لطفاً مبلغ جدید را وارد کنید'));
+        return;
+    }
+
+    // نقشه‌برداری فیلدهای فارسی به انگلیسی
+    const field_mapping = {
+        'هزینه برق': 'electricity_cost',
+        'هزینه مصرفی': 'consumable_cost',
+        'هزینه اجاره': 'rent_cost',
+        'هزینه کارگر': 'labor_cost',
+        'هزینه پیمانکاری': 'subcontracting_cost',
+        'هزینه سربار': 'overhead_cost'
+    };
+
+    // ایجاد مجموعه کالاهای bulk pricing (فقط انتخاب شده‌ها)
+    const bulk_items_map = {};
+    frm.doc.bulk_pricing_items.forEach(bulk_item => {
+        if (bulk_item.selected) {
+            bulk_items_map[bulk_item.item_code] = bulk_item;
+        }
+    });
+
+    let updated_count = 0;
+    let updated_fields = [];
+
+    // به‌روزرسانی items اصلی
+    frm.doc.items.forEach(item => {
+        if (bulk_items_map[item.item_code]) {
+            let item_updated = false;
+            
+            const persian_field = frm.doc.selected_cost_fields;
+            const english_field = field_mapping[persian_field];
+            if (english_field) {
+                const old_value = item[english_field] || 0;
+                item[english_field] = frm.doc.bulk_cost_amount;
+                
+                // به‌روزرسانی bulk pricing item نیز
+                bulk_items_map[item.item_code][english_field] = frm.doc.bulk_cost_amount;
+                
+                if (!item_updated) {
+                    updated_count++;
+                    item_updated = true;
+                }
+                
+                if (!updated_fields.includes(persian_field)) {
+                    updated_fields.push(persian_field);
+                }
+            }
+
+            // محاسبه مجدد هزینه کل عملیات
+            if (item_updated) {
+                item.operation_cost = (item.electricity_cost || 0) + 
+                                    (item.consumable_cost || 0) + 
+                                    (item.rent_cost || 0) + 
+                                    (item.labor_cost || 0) + 
+                                    (item.subcontracting_cost || 0);
+                
+                // محاسبه مجدد هزینه کل
+                item.total_cost = (item.raw_material_cost || 0) + 
+                                (item.operation_cost || 0) + 
+                                (item.overhead_cost || 0);
+                
+                // به‌روزرسانی bulk pricing item
+                bulk_items_map[item.item_code].total_cost = item.total_cost;
+            }
+        }
+    });
+
+    frm.refresh_field('items');
+    frm.refresh_field('bulk_pricing_items');
+    frm.dirty();
+
+    // نمایش پیام موفقیت
+    const amount_formatted = format_currency(frm.doc.bulk_cost_amount);
+    frappe.show_alert({
+        message: `${updated_count} کالا به‌روزرسانی شد - ${updated_fields.join('، ')} به ${amount_formatted} تغییر کرد`,
+        indicator: 'green'
+    });
+
+    // محاسبه مجدد قیمت‌ها
+    frm.call('calculate_item_prices').then(() => {
+        frappe.show_alert({
+            message: 'قیمت‌های نهایی محاسبه شدند',
+            indicator: 'blue'
+        });
+    });
+}
+
+function clear_bulk_pricing_table(frm) {
+    /**
+     * پاک کردن جدول قیمت‌گذاری دستی
+     */
+    
+    if (!frm.doc.bulk_pricing_items || frm.doc.bulk_pricing_items.length === 0) {
+        frappe.show_alert({
+            message: 'جدول قیمت‌گذاری دستی خالی است',
+            indicator: 'yellow'
+        });
+        return;
+    }
+
+    frappe.confirm(
+        __('آیا مطمئن هستید که می‌خواهید تمام کالاهای جدول قیمت‌گذاری دستی را پاک کنید؟'),
+        function() {
+            const item_count = frm.doc.bulk_pricing_items.length;
+            frm.clear_table('bulk_pricing_items');
+            frm.refresh_field('bulk_pricing_items');
+            frm.dirty();
+
+            frappe.show_alert({
+                message: `${item_count} کالا از جدول قیمت‌گذاری دستی پاک شد`,
+                indicator: 'blue'
+            });
+        }
+    );
+}
+
+function select_all_bulk_items(frm, select_value) {
+    /**
+     * انتخاب یا لغو انتخاب همه کالاهای bulk pricing
+     */
+    
+    if (!frm.doc.bulk_pricing_items || frm.doc.bulk_pricing_items.length === 0) {
+        frappe.show_alert({
+            message: 'هیچ کالایی در جدول قیمت‌گذاری دستی وجود ندارد',
+            indicator: 'yellow'
+        });
+        return;
+    }
+
+    let changed_count = 0;
+    frm.doc.bulk_pricing_items.forEach(item => {
+        if (item.selected !== select_value) {
+            item.selected = select_value;
+            changed_count++;
+        }
+    });
+
+    frm.refresh_field('bulk_pricing_items');
+    frm.dirty();
+
+    const action = select_value ? 'انتخاب' : 'لغو انتخاب';
+    frappe.show_alert({
+        message: `${changed_count} کالا ${action} شد`,
+        indicator: select_value ? 'green' : 'blue'
+    });
+}
+
+// ==================== تحلیل نقطه سر به سر ====================
+
+function calculate_break_even_analysis(frm) {
+    /**
+     * محاسبه تحلیل نقطه سر به سر و نمودار سودآوری
+     */
+    
+    if (!frm.doc.items || frm.doc.items.length === 0) {
+        return;
+    }
+
+    // محاسبه آمارهای کلی
+    let total_cost = 0;
+    let total_selling_price = 0;
+    let total_profit = 0;
+    
+    frm.doc.items.forEach(item => {
+        total_cost += (item.total_cost || 0);
+        total_selling_price += (item.selling_price || 0);
+        total_profit += (item.profit_amount || 0);
+    });
+
+    // محاسبه میانگین حاشیه سود
+    const average_margin = total_selling_price > 0 ? (total_profit / total_selling_price) * 100 : 0;
+    
+    // محاسبه نقطه سر به سر
+    const monthly_fixed_costs = frm.doc.monthly_fixed_costs || 0;
+    const break_even_point = average_margin > 0 ? (monthly_fixed_costs / (average_margin / 100)) : 0;
+    
+    // محاسبه سود پس از رسیدن به هدف
+    const target_revenue = frm.doc.target_monthly_revenue || 0;
+    const profit_after_target = target_revenue > break_even_point ? 
+        (target_revenue - break_even_point) * (average_margin / 100) : 0;
+
+    // به‌روزرسانی فیلدها
+    frm.set_value('break_even_point', break_even_point);
+    frm.set_value('profit_after_breakeven', profit_after_target);
+
+    // رندر نمودار
+    render_break_even_chart(frm, {
+        break_even_point: break_even_point,
+        target_revenue: target_revenue,
+        monthly_fixed_costs: monthly_fixed_costs,
+        average_margin: average_margin,
+        profit_after_target: profit_after_target
+    });
+}
+
+function render_break_even_chart(frm, data) {
+    /**
+     * رندر نمودار نقطه سر به سر
+     */
+    
+    const chart_data = [];
+    const max_revenue = Math.max(data.target_revenue, data.break_even_point) * 1.5;
+    const step = max_revenue / 20;
+    
+    // ایجاد داده‌های نمودار
+    for (let revenue = 0; revenue <= max_revenue; revenue += step) {
+        const profit = revenue > data.break_even_point ? 
+            (revenue - data.break_even_point) * (data.average_margin / 100) - data.monthly_fixed_costs : 
+            -data.monthly_fixed_costs;
+        
+        chart_data.push({
+            revenue: revenue / 1000000000, // تبدیل به میلیارد ریال
+            profit: profit / 1000000000,
+            break_even: 0
+        });
+    }
+
+    const html = `
+        <div class="break-even-analysis" style="padding: 20px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 15px; margin: 10px 0;">
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="metric-card" style="background: rgba(255,255,255,0.95); padding: 20px; border-radius: 12px; margin-bottom: 15px; box-shadow: 0 8px 32px rgba(0,0,0,0.1);">
+                        <h4 style="color: #2c3e50; margin-bottom: 15px; display: flex; align-items: center;">
+                            <i class="fa fa-chart-line" style="margin-left: 10px; color: #3498db;"></i>
+                            تحلیل نقطه سر به سر
+                        </h4>
+                        <div class="metric-row" style="display: flex; justify-content: space-between; margin-bottom: 12px; padding: 8px 0; border-bottom: 1px solid #ecf0f1;">
+                            <span style="color: #7f8c8d; font-weight: 500;">نقطه سر به سر:</span>
+                            <span style="color: #e74c3c; font-weight: bold;">${format_currency(data.break_even_point)} ریال</span>
+                        </div>
+                        <div class="metric-row" style="display: flex; justify-content: space-between; margin-bottom: 12px; padding: 8px 0; border-bottom: 1px solid #ecf0f1;">
+                            <span style="color: #7f8c8d; font-weight: 500;">هدف فروش ماهانه:</span>
+                            <span style="color: #3498db; font-weight: bold;">${format_currency(data.target_revenue)} ریال</span>
+                        </div>
+                        <div class="metric-row" style="display: flex; justify-content: space-between; margin-bottom: 12px; padding: 8px 0; border-bottom: 1px solid #ecf0f1;">
+                            <span style="color: #7f8c8d; font-weight: 500;">میانگین حاشیه سود:</span>
+                            <span style="color: #27ae60; font-weight: bold;">${data.average_margin.toFixed(1)}%</span>
+                        </div>
+                        <div class="metric-row" style="display: flex; justify-content: space-between; margin-bottom: 12px; padding: 8px 0;">
+                            <span style="color: #7f8c8d; font-weight: 500;">سود پس از رسیدن به هدف:</span>
+                            <span style="color: ${data.profit_after_target > 0 ? '#27ae60' : '#e74c3c'}; font-weight: bold;">${format_currency(data.profit_after_target)} ریال</span>
+                        </div>
+                    </div>
+                    
+                    <div class="status-card" style="background: rgba(255,255,255,0.95); padding: 20px; border-radius: 12px; box-shadow: 0 8px 32px rgba(0,0,0,0.1);">
+                        <h5 style="color: #2c3e50; margin-bottom: 15px;">وضعیت فعلی:</h5>
+                        ${data.target_revenue > data.break_even_point ? 
+                            `<div style="color: #27ae60; font-weight: bold; display: flex; align-items: center;">
+                                <i class="fa fa-check-circle" style="margin-left: 8px;"></i>
+                                هدف شما بالاتر از نقطه سر به سر است ✅
+                            </div>
+                            <p style="color: #7f8c8d; margin-top: 10px; font-size: 14px;">
+                                با رسیدن به هدف ${format_currency(data.target_revenue)} ریال، 
+                                سود ${format_currency(data.profit_after_target)} ریال خواهید داشت.
+                            </p>` : 
+                            `<div style="color: #e74c3c; font-weight: bold; display: flex; align-items: center;">
+                                <i class="fa fa-exclamation-triangle" style="margin-left: 8px;"></i>
+                                هدف شما کمتر از نقطه سر به سر است ⚠️
+                            </div>
+                            <p style="color: #7f8c8d; margin-top: 10px; font-size: 14px;">
+                                برای سودآوری، باید فروش ماهانه حداقل ${format_currency(data.break_even_point)} ریال باشد.
+                            </p>`
+                        }
+                    </div>
+                </div>
+                
+                <div class="col-md-6">
+                    <div class="chart-container" style="background: rgba(255,255,255,0.95); padding: 20px; border-radius: 12px; box-shadow: 0 8px 32px rgba(0,0,0,0.1);">
+                        <h5 style="color: #2c3e50; margin-bottom: 15px; text-align: center;">نمودار سودآوری</h5>
+                        <canvas id="break-even-chart" width="400" height="300"></canvas>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="recommendations" style="background: rgba(255,255,255,0.95); padding: 20px; border-radius: 12px; margin-top: 15px; box-shadow: 0 8px 32px rgba(0,0,0,0.1);">
+                <h5 style="color: #2c3e50; margin-bottom: 15px; display: flex; align-items: center;">
+                    <i class="fa fa-lightbulb" style="margin-left: 10px; color: #f39c12;"></i>
+                    توصیه‌های بهبود
+                </h5>
+                <div class="row">
+                    <div class="col-md-4">
+                        <div style="text-align: center; padding: 15px;">
+                            <i class="fa fa-arrow-up" style="font-size: 24px; color: #27ae60; margin-bottom: 10px;"></i>
+                            <h6 style="color: #2c3e50;">افزایش حاشیه سود</h6>
+                            <p style="color: #7f8c8d; font-size: 12px;">بهینه‌سازی قیمت‌ها و کاهش هزینه‌ها</p>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div style="text-align: center; padding: 15px;">
+                            <i class="fa fa-chart-line" style="font-size: 24px; color: #3498db; margin-bottom: 10px;"></i>
+                            <h6 style="color: #2c3e50;">افزایش فروش</h6>
+                            <p style="color: #7f8c8d; font-size: 12px;">بازاریابی و توسعه محصولات جدید</p>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div style="text-align: center; padding: 15px;">
+                            <i class="fa fa-cut" style="font-size: 24px; color: #e74c3c; margin-bottom: 10px;"></i>
+                            <h6 style="color: #2c3e50;">کاهش هزینه‌های ثابت</h6>
+                            <p style="color: #7f8c8d; font-size: 12px;">بهینه‌سازی عملیات و منابع</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+
+    frm.fields_dict.break_even_chart_html.$wrapper.html(html);
+    
+    // رندر نمودار با Chart.js
+    setTimeout(() => {
+        render_chart_js(chart_data, data);
+    }, 100);
+}
+
+function render_chart_js(chart_data, analysis_data) {
+    /**
+     * رندر نمودار با Chart.js
+     */
+    
+    const canvas = document.getElementById('break-even-chart');
+    if (!canvas) return;
+    
+    const ctx = canvas.getContext('2d');
+    
+    // پاک کردن نمودار قبلی
+    if (window.breakEvenChart) {
+        window.breakEvenChart.destroy();
+    }
+    
+    window.breakEvenChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: chart_data.map(d => d.revenue.toFixed(1) + 'B'),
+            datasets: [
+                {
+                    label: 'سود (میلیارد ریال)',
+                    data: chart_data.map(d => d.profit),
+                    borderColor: '#27ae60',
+                    backgroundColor: 'rgba(39, 174, 96, 0.1)',
+                    borderWidth: 3,
+                    fill: true,
+                    tension: 0.4
+                },
+                {
+                    label: 'نقطه سر به سر',
+                    data: chart_data.map(d => d.break_even),
+                    borderColor: '#e74c3c',
+                    backgroundColor: 'transparent',
+                    borderWidth: 2,
+                    borderDash: [5, 5],
+                    pointRadius: 0
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'top',
+                    labels: {
+                        usePointStyle: true,
+                        font: {
+                            family: 'Vazir, sans-serif',
+                            size: 12
+                        }
+                    }
+                },
+                tooltip: {
+                    mode: 'index',
+                    intersect: false,
+                    titleFont: {
+                        family: 'Vazir, sans-serif'
+                    },
+                    bodyFont: {
+                        family: 'Vazir, sans-serif'
+                    },
+                    callbacks: {
+                        label: function(context) {
+                            if (context.datasetIndex === 0) {
+                                return `سود: ${context.parsed.y.toFixed(2)} میلیارد ریال`;
+                            }
+                            return context.dataset.label;
+                        }
+                    }
+                }
+            },
+            scales: {
+                x: {
+                    display: true,
+                    title: {
+                        display: true,
+                        text: 'فروش (میلیارد ریال)',
+                        font: {
+                            family: 'Vazir, sans-serif',
+                            size: 14
+                        }
+                    },
+                    ticks: {
+                        font: {
+                            family: 'Vazir, sans-serif'
+                        }
+                    }
+                },
+                y: {
+                    display: true,
+                    title: {
+                        display: true,
+                        text: 'سود (میلیارد ریال)',
+                        font: {
+                            family: 'Vazir, sans-serif',
+                            size: 14
+                        }
+                    },
+                    ticks: {
+                        font: {
+                            family: 'Vazir, sans-serif'
+                        }
+                    }
+                }
+            },
+            interaction: {
+                mode: 'nearest',
+                axis: 'x',
+                intersect: false
+            }
+        }
+    });
+}
+
+// ==================== بارگذاری خودکار هزینه‌های ثابت ====================
+
+function load_automatic_fixed_costs(frm) {
+    /**
+     * بارگذاری خودکار هزینه‌های ثابت ماهانه از حسابداری ERPNext
+     */
+    
+    frappe.show_alert({
+        message: 'در حال بارگذاری هزینه‌های ثابت از حسابداری...',
+        indicator: 'blue'
+    });
+
+    frappe.call({
+        method: 'pricing.pricing.doctype.auto_price_list.auto_price_list.get_automatic_fixed_costs',
+        args: {
+            doctype: frm.doc.doctype,
+            name: frm.doc.name
+        },
+        callback: function(r) {
+            if (r.message !== undefined) {
+                const fixed_costs = r.message;
+                
+                if (fixed_costs > 0) {
+                    // به‌روزرسانی فیلد
+                    frm.set_value('monthly_fixed_costs', fixed_costs);
+                    
+                    // نمایش پیام موفقیت
+                    const formatted_amount = format_currency(fixed_costs);
+                    frappe.show_alert({
+                        message: `هزینه‌های ثابت ماهانه بارگذاری شد: ${formatted_amount} ریال`,
+                        indicator: 'green'
+                    });
+                    
+                    // محاسبه مجدد تحلیل نقطه سر به سر
+                    calculate_break_even_analysis(frm);
+                    
+                    // نمایش جزئیات در dialog
+                    show_fixed_costs_breakdown_dialog(frm, fixed_costs);
+                } else {
+                    frappe.confirm(
+                        __('هزینه‌های ثابت یافت نشد. آیا می‌خواهید تنظیمات هزینه‌های ثابت را پیکربندی کنید؟'),
+                        function() {
+                            // باز کردن تنظیمات هزینه‌های ثابت
+                            frappe.set_route('Form', 'Fixed Costs Settings', 'Fixed Costs Settings');
+                        },
+                        function() {
+                            frappe.msgprint({
+                                title: __('راه‌حل‌های جایگزین'),
+                                message: __(`
+                                    <div style="padding: 15px;">
+                                        <h5>دلایل احتمالی:</h5>
+                                        <ul>
+                                            <li>حساب‌های هزینه ثابت تعریف نشده‌اند</li>
+                                            <li>تراکنش‌های مالی برای ماه گذشته وجود ندارند</li>
+                                            <li>تنظیمات هزینه‌های ثابت پیکربندی نشده</li>
+                                        </ul>
+                                        <h5>راه‌حل‌های پیشنهادی:</h5>
+                                        <ul>
+                                            <li><strong>تنظیمات هزینه‌های ثابت:</strong> از منو Setup > Fixed Costs Settings</li>
+                                            <li><strong>ثبت تراکنش‌ها:</strong> تراکنش‌های مالی ماه گذشته را ثبت کنید</li>
+                                            <li><strong>ورود دستی:</strong> مقدار را به صورت دستی وارد کنید</li>
+                                        </ul>
+                                    </div>
+                                `),
+                                indicator: 'yellow'
+                            });
+                        }
+                    );
+                }
+            } else {
+                frappe.show_alert({
+                    message: 'خطا در بارگذاری هزینه‌های ثابت',
+                    indicator: 'red'
+                });
+            }
+        },
+        error: function(err) {
+            console.error('Error loading fixed costs:', err);
+            frappe.show_alert({
+                message: 'خطا در ارتباط با سرور',
+                indicator: 'red'
+            });
+        }
+    });
+}
+
+function show_fixed_costs_breakdown_dialog(frm, total_fixed_costs) {
+    /**
+     * نمایش جزئیات هزینه‌های ثابت در dialog
+     */
+    
+    const formatted_total = format_currency(total_fixed_costs);
+    
+    const dialog = new frappe.ui.Dialog({
+        title: __('جزئیات هزینه‌های ثابت ماهانه'),
+        size: 'large',
+        fields: [
+            {
+                fieldtype: 'HTML',
+                fieldname: 'breakdown_html'
+            }
+        ]
+    });
+    
+    const html = `
+        <div style="padding: 20px;">
+            <div class="alert alert-success" style="margin-bottom: 20px;">
+                <h4 style="margin-top: 0;">
+                    <i class="fa fa-check-circle"></i>
+                    هزینه‌های ثابت ماهانه بارگذاری شد
+                </h4>
+                <h3 style="color: #27ae60; margin: 10px 0;">
+                    ${formatted_total} ریال
+                </h3>
+            </div>
+            
+            <div class="row">
+                <div class="col-md-6">
+                    <h5>منابع داده:</h5>
+                    <ul>
+                        <li>تراکنش‌های مالی ماه گذشته</li>
+                        <li>حساب‌های هزینه نوع "Expense"</li>
+                        <li>فیلتر بر اساس کلمات کلیدی هزینه ثابت</li>
+                    </ul>
+                </div>
+                <div class="col-md-6">
+                    <h5>شامل هزینه‌های:</h5>
+                    <ul>
+                        <li>اجاره و کرایه املاک</li>
+                        <li>حقوق و دستمزد کارکنان</li>
+                        <li>بیمه‌ها و مستهلکات</li>
+                        <li>هزینه‌های اداری ثابت</li>
+                        <li>هزینه‌های مالی و بانکی</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="alert alert-info" style="margin-top: 20px;">
+                <h5>نکات مهم:</h5>
+                <ul style="margin-bottom: 0;">
+                    <li>این مقدار بر اساس تراکنش‌های واقعی حسابداری محاسبه شده</li>
+                    <li>در صورت عدم وجود داده کافی، از میانگین 3 ماه گذشته استفاده می‌شود</li>
+                    <li>می‌توانید مقدار را دستی تغییر دهید</li>
+                    <li>این مقدار در محاسبه نقطه سر به سر استفاده می‌شود</li>
+                </ul>
+            </div>
+        </div>
+    `;
+    
+    dialog.fields_dict.breakdown_html.$wrapper.html(html);
+    dialog.show();
+}
+
+// ==================== نمودارهای پیشرفته ====================
+
+function render_advanced_analytics(frm) {
+    /**
+     * رندر تمام نمودارهای پیشرفته
+     */
+    
+    if (!frm.doc.items || frm.doc.items.length === 0) {
+        return;
+    }
+
+    // رندر نمودار آبشاری
+    render_waterfall_chart(frm);
+    
+    // رندر نمودار حبابی
+    render_bubble_chart(frm);
+    
+    // رندر پیش‌بینی فروش
+    render_sales_forecast(frm);
+    
+    // رندر تحلیل ROI
+    render_roi_analysis(frm);
+    
+    // رندر رنکینگ محصولات
+    render_product_ranking(frm);
+}
+
+function render_waterfall_chart(frm) {
+    /**
+     * نمودار آبشاری تحلیل هزینه‌ها
+     */
+    
+    const items = frm.doc.items || [];
+    
+    // محاسبه میانگین هزینه‌ها
+    let avg_costs = {
+        material: 0,
+        labor: 0,
+        overhead: 0,
+        electricity: 0,
+        rent: 0,
+        subcontracting: 0
+    };
+    
+    items.forEach(item => {
+        avg_costs.material += (item.total_cost || 0) - (item.labor_cost || 0) - (item.overhead_cost || 0) - (item.electricity_cost || 0) - (item.rent_cost || 0) - (item.subcontracting_cost || 0);
+        avg_costs.labor += (item.labor_cost || 0);
+        avg_costs.overhead += (item.overhead_cost || 0);
+        avg_costs.electricity += (item.electricity_cost || 0);
+        avg_costs.rent += (item.rent_cost || 0);
+        avg_costs.subcontracting += (item.subcontracting_cost || 0);
+    });
+    
+    Object.keys(avg_costs).forEach(key => {
+        avg_costs[key] = avg_costs[key] / items.length;
+    });
+    
+    const total_avg_selling = items.reduce((sum, item) => sum + (item.selling_price || 0), 0) / items.length;
+    
+    const html = `
+        <div class="waterfall-container" style="background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
+            <h5 style="text-align: center; margin-bottom: 20px; color: #2c3e50;">تحلیل آبشاری هزینه‌ها (میانگین)</h5>
+            <canvas id="waterfall-chart" width="600" height="400"></canvas>
+        </div>
+    `;
+    
+    frm.fields_dict.waterfall_chart_html.$wrapper.html(html);
+    
+    setTimeout(() => {
+        render_waterfall_chartjs(avg_costs, total_avg_selling);
+    }, 100);
+}
+
+function render_bubble_chart(frm) {
+    /**
+     * نمودار حبابی قیمت vs حجم فروش
+     */
+    
+    const items = frm.doc.items || [];
+    
+    const html = `
+        <div class="bubble-container" style="background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
+            <h5 style="text-align: center; margin-bottom: 20px; color: #2c3e50;">قیمت در مقابل حجم فروش</h5>
+            <canvas id="bubble-chart" width="600" height="400"></canvas>
+        </div>
+    `;
+    
+    frm.fields_dict.bubble_chart_html.$wrapper.html(html);
+    
+    setTimeout(() => {
+        render_bubble_chartjs(items);
+    }, 100);
+}
+
+function render_sales_forecast(frm) {
+    /**
+     * پیش‌بینی فروش ماهانه
+     */
+    
+    const items = frm.doc.items || [];
+    const total_selling_price = items.reduce((sum, item) => sum + (item.selling_price || 0), 0);
+    
+    // پیش‌بینی بر اساس روند فعلی
+    const monthly_forecast = [];
+    const base_monthly = total_selling_price * 0.1; // فرض 10% فروش ماهانه
+    
+    for (let i = 1; i <= 12; i++) {
+        const seasonal_factor = 1 + Math.sin((i - 1) * Math.PI / 6) * 0.2; // تغییرات فصلی
+        const growth_factor = 1 + (i * 0.02); // رشد 2% ماهانه
+        monthly_forecast.push({
+            month: i,
+            forecast: base_monthly * seasonal_factor * growth_factor
+        });
+    }
+    
+    const html = `
+        <div class="forecast-container" style="background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
+            <h5 style="text-align: center; margin-bottom: 20px; color: #2c3e50;">پیش‌بینی فروش 12 ماه آینده</h5>
+            <canvas id="forecast-chart" width="600" height="400"></canvas>
+        </div>
+    `;
+    
+    frm.fields_dict.sales_forecast_html.$wrapper.html(html);
+    
+    setTimeout(() => {
+        render_forecast_chartjs(monthly_forecast);
+    }, 100);
+}
+
+function render_roi_analysis(frm) {
+    /**
+     * تحلیل ROI محصولات
+     */
+    
+    const items = frm.doc.items || [];
+    
+    // محاسبه ROI برای هر محصول
+    const roi_data = items.map(item => {
+        const investment = item.total_cost || 0;
+        const profit = (item.selling_price || 0) - investment;
+        const roi = investment > 0 ? (profit / investment) * 100 : 0;
+        
+        return {
+            item_name: item.item_name || item.item_code,
+            roi: roi,
+            profit: profit,
+            investment: investment
+        };
+    }).sort((a, b) => b.roi - a.roi);
+    
+    let table_rows = '';
+    roi_data.slice(0, 10).forEach((item, index) => {
+        const roi_color = item.roi > 20 ? '#27ae60' : item.roi > 10 ? '#f39c12' : '#e74c3c';
+        table_rows += `
+            <tr>
+                <td>${index + 1}</td>
+                <td>${item.item_name}</td>
+                <td class="text-right">${format_currency(item.investment)}</td>
+                <td class="text-right">${format_currency(item.profit)}</td>
+                <td class="text-right" style="color: ${roi_color}; font-weight: bold;">${item.roi.toFixed(1)}%</td>
+            </tr>
+        `;
+    });
+    
+    const html = `
+        <div class="roi-container" style="background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
+            <h5 style="text-align: center; margin-bottom: 20px; color: #2c3e50;">تحلیل ROI محصولات (بالاترین 10)</h5>
+            <table class="table table-striped">
+                <thead>
+                    <tr style="background-color: #f8f9fa;">
+                        <th>رتبه</th>
+                        <th>نام محصول</th>
+                        <th class="text-right">سرمایه‌گذاری</th>
+                        <th class="text-right">سود</th>
+                        <th class="text-right">ROI</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${table_rows}
+                </tbody>
+            </table>
+        </div>
+    `;
+    
+    frm.fields_dict.roi_analysis_html.$wrapper.html(html);
+}
+
+function render_product_ranking(frm) {
+    /**
+     * رنکینگ محصولات و فرصت‌های افزایش قیمت
+     */
+    
+    const items = frm.doc.items || [];
+    
+    // رنکینگ بر اساس حاشیه سود
+    const ranking_data = items.map(item => {
+        const cost = item.total_cost || 0;
+        const price = item.selling_price || 0;
+        const margin = cost > 0 ? ((price - cost) / cost) * 100 : 0;
+        const profit = price - cost;
+        
+        // تخمین فرصت افزایش قیمت (بر اساس حاشیه سود پایین)
+        let price_opportunity = 0;
+        if (margin < 15) {
+            price_opportunity = (cost * 0.2) - profit; // هدف 20% حاشیه سود
+        }
+        
+        return {
+            item_name: item.item_name || item.item_code,
+            current_price: price,
+            margin: margin,
+            profit: profit,
+            price_opportunity: Math.max(0, price_opportunity),
+            potential_price: price + Math.max(0, price_opportunity)
+        };
+    }).sort((a, b) => b.price_opportunity - a.price_opportunity);
+    
+    let ranking_rows = '';
+    ranking_data.slice(0, 10).forEach((item, index) => {
+        const margin_color = item.margin > 20 ? '#27ae60' : item.margin > 10 ? '#f39c12' : '#e74c3c';
+        const opportunity_color = item.price_opportunity > 0 ? '#e74c3c' : '#27ae60';
+        
+        ranking_rows += `
+            <tr>
+                <td>${index + 1}</td>
+                <td>${item.item_name}</td>
+                <td class="text-right">${format_currency(item.current_price)}</td>
+                <td class="text-right" style="color: ${margin_color}; font-weight: bold;">${item.margin.toFixed(1)}%</td>
+                <td class="text-right" style="color: ${opportunity_color}; font-weight: bold;">${format_currency(item.price_opportunity)}</td>
+                <td class="text-right">${format_currency(item.potential_price)}</td>
+            </tr>
+        `;
+    });
+    
+    const html = `
+        <div class="ranking-container" style="background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
+            <h5 style="text-align: center; margin-bottom: 20px; color: #2c3e50;">رنکینگ فرصت‌های افزایش قیمت</h5>
+            <table class="table table-striped">
+                <thead>
+                    <tr style="background-color: #f8f9fa;">
+                        <th>رتبه</th>
+                        <th>نام محصول</th>
+                        <th class="text-right">قیمت فعلی</th>
+                        <th class="text-right">حاشیه سود</th>
+                        <th class="text-right">فرصت افزایش</th>
+                        <th class="text-right">قیمت پیشنهادی</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${ranking_rows}
+                </tbody>
+            </table>
+            <div class="alert alert-info" style="margin-top: 15px;">
+                <small><strong>نکته:</strong> فرصت‌های افزایش قیمت بر اساس هدف 20% حاشیه سود محاسبه شده‌اند.</small>
+            </div>
+        </div>
+    `;
+    
+    frm.fields_dict.product_ranking_html.$wrapper.html(html);
+}
+
+// ==================== توابع رندر Chart.js ====================
+
+function render_waterfall_chartjs(costs, selling_price) {
+    /**
+     * رندر نمودار آبشاری با Chart.js
+     */
+    
+    const canvas = document.getElementById('waterfall-chart');
+    if (!canvas) return;
+    
+    const ctx = canvas.getContext('2d');
+    
+    if (window.waterfallChart) {
+        window.waterfallChart.destroy();
+    }
+    
+    const data_points = [
+        { label: 'مواد اولیه', value: costs.material, color: '#3498db' },
+        { label: 'نیروی کار', value: costs.labor, color: '#e74c3c' },
+        { label: 'سربار', value: costs.overhead, color: '#f39c12' },
+        { label: 'برق', value: costs.electricity, color: '#9b59b6' },
+        { label: 'اجاره', value: costs.rent, color: '#1abc9c' },
+        { label: 'پیمانکاری', value: costs.subcontracting, color: '#34495e' }
+    ];
+    
+    let cumulative = 0;
+    const chart_data = [];
+    
+    data_points.forEach(point => {
+        chart_data.push({
+            x: point.label,
+            y: [cumulative, cumulative + point.value],
+            backgroundColor: point.color
+        });
+        cumulative += point.value;
+    });
+    
+    // اضافه کردن قیمت فروش
+    chart_data.push({
+        x: 'قیمت فروش',
+        y: [0, selling_price],
+        backgroundColor: '#27ae60'
+    });
+    
+    window.waterfallChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            datasets: [{
+                label: 'هزینه‌ها',
+                data: chart_data,
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: {
+                    display: false
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            const value = context.parsed.y[1] - context.parsed.y[0];
+                            return `${context.label}: ${format_currency(value)} ریال`;
+                        }
+                    }
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        callback: function(value) {
+                            return format_currency(value) + ' ریال';
+                        }
+                    }
+                }
+            }
+        }
+    });
+}
+
+function render_bubble_chartjs(items) {
+    /**
+     * رندر نمودار حبابی با Chart.js
+     */
+    
+    const canvas = document.getElementById('bubble-chart');
+    if (!canvas) return;
+    
+    const ctx = canvas.getContext('2d');
+    
+    if (window.bubbleChart) {
+        window.bubbleChart.destroy();
+    }
+    
+    const bubble_data = items.map(item => {
+        const profit_margin = ((item.selling_price || 0) - (item.total_cost || 0)) / (item.total_cost || 1) * 100;
+        return {
+            x: item.selling_price || 0,
+            y: profit_margin,
+            r: Math.sqrt((item.total_cost || 0) / 1000000) // اندازه حباب بر اساس هزینه
+        };
+    });
+    
+    window.bubbleChart = new Chart(ctx, {
+        type: 'bubble',
+        data: {
+            datasets: [{
+                label: 'محصولات',
+                data: bubble_data,
+                backgroundColor: 'rgba(52, 152, 219, 0.6)',
+                borderColor: 'rgba(52, 152, 219, 1)',
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            return `قیمت: ${format_currency(context.parsed.x)} - حاشیه: ${context.parsed.y.toFixed(1)}%`;
+                        }
+                    }
+                }
+            },
+            scales: {
+                x: {
+                    title: {
+                        display: true,
+                        text: 'قیمت فروش (ریال)'
+                    },
+                    ticks: {
+                        callback: function(value) {
+                            return format_currency(value);
+                        }
+                    }
+                },
+                y: {
+                    title: {
+                        display: true,
+                        text: 'حاشیه سود (%)'
+                    }
+                }
+            }
+        }
+    });
+}
+
+function render_forecast_chartjs(forecast_data) {
+    /**
+     * رندر نمودار پیش‌بینی فروش
+     */
+    
+    const canvas = document.getElementById('forecast-chart');
+    if (!canvas) return;
+    
+    const ctx = canvas.getContext('2d');
+    
+    if (window.forecastChart) {
+        window.forecastChart.destroy();
+    }
+    
+    const months = ['فروردین', 'اردیبهشت', 'خرداد', 'تیر', 'مرداد', 'شهریور', 
+                   'مهر', 'آبان', 'آذر', 'دی', 'بهمن', 'اسفند'];
+    
+    window.forecastChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: months,
+            datasets: [{
+                label: 'پیش‌بینی فروش',
+                data: forecast_data.map(d => d.forecast),
+                borderColor: '#27ae60',
+                backgroundColor: 'rgba(39, 174, 96, 0.1)',
+                borderWidth: 3,
+                fill: true,
+                tension: 0.4
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            return `پیش‌بینی: ${format_currency(context.parsed.y)} ریال`;
+                        }
+                    }
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        callback: function(value) {
+                            return format_currency(value) + ' ریال';
+                        }
+                    }
+                }
+            }
+        }
+    });
 }

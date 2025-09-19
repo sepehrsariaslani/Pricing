@@ -1,0 +1,130 @@
+{
+    "actions": [],
+    "allow_rename": 1,
+    "creation": "2024-03-19 10:00:00.000000",
+    "doctype": "DocType",
+    "editable_grid": 1,
+    "engine": "InnoDB",
+    "field_order": [
+        "selected",
+        "item_code",
+        "item_name",
+        "item_group",
+        "brand",
+        "warehouse",
+        "column_break_1",
+        "total_cost",
+        "electricity_cost",
+        "consumable_cost",
+        "rent_cost",
+        "labor_cost",
+        "subcontracting_cost",
+        "overhead_cost"
+    ],
+    "fields": [
+        {
+            "fieldname": "selected",
+            "fieldtype": "Check",
+            "label": "انتخاب",
+            "default": 1,
+            "in_list_view": 1
+        },
+        {
+            "fieldname": "item_code",
+            "fieldtype": "Link",
+            "label": "کد کالا",
+            "options": "Item",
+            "reqd": 1,
+            "in_list_view": 1
+        },
+        {
+            "fieldname": "item_name",
+            "fieldtype": "Data",
+            "label": "نام کالا",
+            "read_only": 1,
+            "in_list_view": 1
+        },
+        {
+            "fieldname": "item_group",
+            "fieldtype": "Link",
+            "label": "گروه کالا",
+            "options": "Item Group",
+            "read_only": 1
+        },
+        {
+            "fieldname": "brand",
+            "fieldtype": "Link",
+            "label": "برند",
+            "options": "Brand",
+            "read_only": 1
+        },
+        {
+            "fieldname": "warehouse",
+            "fieldtype": "Link",
+            "label": "انبار",
+            "options": "Warehouse",
+            "read_only": 1
+        },
+        {
+            "fieldname": "column_break_1",
+            "fieldtype": "Column Break"
+        },
+        {
+            "fieldname": "total_cost",
+            "fieldtype": "Currency",
+            "label": "هزینه کل",
+            "read_only": 1,
+            "in_list_view": 1
+        },
+        {
+            "fieldname": "electricity_cost",
+            "fieldtype": "Currency",
+            "label": "هزینه برق",
+            "default": 0
+        },
+        {
+            "fieldname": "consumable_cost",
+            "fieldtype": "Currency",
+            "label": "هزینه مصرفی",
+            "default": 0
+        },
+        {
+            "fieldname": "rent_cost",
+            "fieldtype": "Currency",
+            "label": "هزینه اجاره",
+            "default": 0
+        },
+        {
+            "fieldname": "labor_cost",
+            "fieldtype": "Currency",
+            "label": "هزینه کارگر",
+            "default": 0
+        },
+        {
+            "fieldname": "subcontracting_cost",
+            "fieldtype": "Currency",
+            "label": "هزینه پیمانکاری",
+            "default": 0
+        },
+        {
+            "fieldname": "overhead_cost",
+            "fieldtype": "Currency",
+            "label": "هزینه سربار",
+            "default": 0
+        }
+    ],
+    "index_web_pages_for_search": 1,
+    "istable": 1,
+    "links": [],
+    "modified": "2024-03-19 10:00:00.000000",
+    "modified_by": "Administrator",
+    "module": "Pricing",
+    "name": "Bulk Pricing Item",
+    "naming_rule": "By fieldname",
+    "owner": "Administrator",
+    "permissions": [],
+    "sort_field": "modified",
+    "sort_order": "DESC",
+    "states": [],
+    "track_changes": 1
+}

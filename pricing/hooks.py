@@ -26,7 +26,9 @@ app_license = "mit"
 
 # include js, css files in header of desk.html
 # app_include_css = "/assets/pricing/css/pricing.css"
-# app_include_js = "/assets/pricing/js/pricing.js"
+app_include_js = [
+    "https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.js"
+]
 
 # include js, css files in header of web template
 # web_include_css = "/assets/pricing/css/pricing.css"

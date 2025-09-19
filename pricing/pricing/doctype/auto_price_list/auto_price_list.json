@@ -68,6 +68,19 @@
         "brand",
         "fetch_items_button",
         "items_section",
+        "advanced_filter_section",
+        "enable_advanced_filter",
+        "filter_item_name",
+        "filter_item_group",
+        "filter_brand",
+        "filter_warehouse",
+        "filter_column_break_1",
+        "filter_bom_status",
+        "filter_column_break_2",
+        "sort_by_field",
+        "sort_order",
+        "apply_filters_button",
+        "clear_filters_button",
         "items",
         "total_profit",
         "update_prices_button",
@@ -79,6 +92,50 @@
         "remove_brand",
         "remove_items_button",
         "remove_no_bom_items_button",
+        "bulk_pricing_tab",
+        "bulk_pricing_section",
+        "bulk_pricing_filter_section",
+        "bulk_filter_item_name",
+        "bulk_filter_item_group",
+        "bulk_filter_column_break_1",
+        "bulk_filter_brand",
+        "bulk_filter_warehouse",
+        "bulk_filter_column_break_2",
+        "bulk_filter_bom_status",
+        "add_filtered_items_button",
+        "bulk_pricing_items_section",
+        "select_all_items_button",
+        "bulk_selection_column_break",
+        "deselect_all_items_button",
+        "bulk_pricing_items",
+        "bulk_pricing_update_section",
+        "selected_cost_fields",
+        "bulk_cost_column_break",
+        "bulk_cost_amount",
+        "apply_bulk_pricing_button",
+        "clear_bulk_pricing_button",
+        "dashboard_tab",
+        "dashboard_section",
+        "dashboard_html",
+        "financial_analysis_section",
+        "monthly_fixed_costs",
+        "load_fixed_costs_button",
+        "target_monthly_revenue",
+        "financial_column_break",
+        "break_even_point",
+        "profit_after_breakeven",
+        "break_even_chart_section",
+        "break_even_chart_html",
+        "advanced_analytics_section",
+        "waterfall_chart_html",
+        "analytics_column_break",
+        "bubble_chart_html",
+        "forecasting_section",
+        "sales_forecast_html",
+        "forecast_column_break",
+        "roi_analysis_html",
+        "product_ranking_section",
+        "product_ranking_html",
         "display_settings_tab",
         "pricing_details_section",
         "show_base_cost",
@@ -593,6 +650,340 @@
             "label": "مبلغ رند کردن قیمت",
             "description": "قیمت‌ها به سمت بالا به این مبلغ رند می‌شوند (مثال: 1000 برای رند به هزارگان)",
             "default": 0
+        },
+        {
+            "fieldname": "advanced_filter_section",
+            "fieldtype": "Section Break",
+            "label": "فیلتر و مرتب‌سازی پیشرفته",
+            "collapsible": 1
+        },
+        {
+            "fieldname": "enable_advanced_filter",
+            "fieldtype": "Check",
+            "label": "فعال‌سازی فیلتر پیشرفته",
+            "default": 0
+        },
+        {
+            "fieldname": "filter_item_name",
+            "fieldtype": "Data",
+            "label": "فیلتر نام کالا",
+            "description": "جستجو در نام کالا (می‌توانید چندین کلمه با کاما جدا کنید)",
+            "depends_on": "enable_advanced_filter"
+        },
+        {
+            "fieldname": "filter_column_break_1",
+            "fieldtype": "Column Break",
+            "depends_on": "enable_advanced_filter"
+        },
+        {
+            "fieldname": "filter_item_group",
+            "fieldtype": "MultiSelectList",
+            "label": "گروه کالا",
+            "options": "Item Group",
+            "depends_on": "enable_advanced_filter"
+        },
+        {
+            "fieldname": "filter_brand",
+            "fieldtype": "MultiSelectList",
+            "label": "برند",
+            "options": "Brand",
+            "depends_on": "enable_advanced_filter"
+        },
+        {
+            "fieldname": "filter_column_break_2",
+            "fieldtype": "Column Break",
+            "depends_on": "enable_advanced_filter"
+        },
+        {
+            "fieldname": "filter_warehouse",
+            "fieldtype": "MultiSelectList",
+            "label": "فیلتر انبار",
+            "options": "Warehouse",
+            "depends_on": "enable_advanced_filter"
+        },
+        {
+            "fieldname": "filter_column_break_1",
+            "fieldtype": "Column Break",
+            "depends_on": "enable_advanced_filter"
+        },
+        {
+            "fieldname": "filter_bom_status",
+            "fieldtype": "Select",
+            "label": "وضعیت BOM",
+            "options": "\nبا BOM ارسال شده\nبا BOM ارسال نشده\nبدون BOM",
+            "depends_on": "enable_advanced_filter"
+        },
+        {
+            "fieldname": "filter_column_break_3",
+            "fieldtype": "Column Break",
+            "depends_on": "enable_advanced_filter"
+        },
+        {
+            "fieldname": "sort_by_field",
+            "fieldtype": "Select",
+            "label": "مرتب‌سازی بر اساس",
+            "options": "\nنام کالا\nگروه کالا\nبرند\nهزینه کل\nقیمت فروش\nسود\nدرصد سود",
+            "depends_on": "enable_advanced_filter"
+        },
+        {
+            "fieldname": "sort_order",
+            "fieldtype": "Select",
+            "label": "ترتیب مرتب‌سازی",
+            "options": "صعودی\nنزولی",
+            "default": "صعودی",
+            "depends_on": "enable_advanced_filter"
+        },
+        {
+            "fieldname": "filter_column_break_2",
+            "fieldtype": "Column Break",
+            "depends_on": "enable_advanced_filter"
+        },
+        {
+            "fieldname": "apply_filters_button",
+            "fieldtype": "Button",
+            "label": "اعمال فیلتر",
+            "depends_on": "enable_advanced_filter"
+        },
+        {
+            "fieldname": "clear_filters_button",
+            "fieldtype": "Button",
+            "label": "پاک کردن فیلترها",
+            "depends_on": "enable_advanced_filter"
+        },
+        {
+            "fieldname": "bulk_pricing_tab",
+            "fieldtype": "Tab Break",
+            "label": "قیمت‌گذاری دستی"
+        },
+        {
+            "fieldname": "bulk_pricing_section",
+            "fieldtype": "Section Break",
+            "label": "انتخاب کالاها برای قیمت‌گذاری دستی"
+        },
+        {
+            "fieldname": "bulk_pricing_filter_section",
+            "fieldtype": "Section Break",
+            "label": "فیلتر کالاها",
+            "collapsible": 1
+        },
+        {
+            "fieldname": "bulk_filter_item_name",
+            "fieldtype": "Data",
+            "label": "فیلتر نام کالا",
+            "description": "مثال: نقره‌ای، طلایی، مشکی (چندین کلمه با کاما جدا کنید)"
+        },
+        {
+            "fieldname": "bulk_filter_item_group",
+            "fieldtype": "Link",
+            "label": "گروه کالا",
+            "options": "Item Group"
+        },
+        {
+            "fieldname": "bulk_filter_column_break_1",
+            "fieldtype": "Column Break"
+        },
+        {
+            "fieldname": "bulk_filter_brand",
+            "fieldtype": "Link",
+            "label": "برند",
+            "options": "Brand"
+        },
+        {
+            "fieldname": "bulk_filter_warehouse",
+            "fieldtype": "Link",
+            "label": "انبار",
+            "options": "Warehouse"
+        },
+        {
+            "fieldname": "bulk_filter_column_break_2",
+            "fieldtype": "Column Break"
+        },
+        {
+            "fieldname": "bulk_filter_bom_status",
+            "fieldtype": "Select",
+            "label": "وضعیت BOM",
+            "options": "\nبا BOM ارسال شده\nبا BOM ارسال نشده\nبدون BOM"
+        },
+        {
+            "fieldname": "add_filtered_items_button",
+            "fieldtype": "Button",
+            "label": "اضافه کردن کالاهای فیلتر شده"
+        },
+        {
+            "fieldname": "bulk_pricing_items_section",
+            "fieldtype": "Section Break",
+            "label": "کالاهای انتخاب شده برای قیمت‌گذاری"
+        },
+        {
+            "fieldname": "select_all_items_button",
+            "fieldtype": "Button",
+            "label": "انتخاب همه"
+        },
+        {
+            "fieldname": "bulk_selection_column_break",
+            "fieldtype": "Column Break"
+        },
+        {
+            "fieldname": "deselect_all_items_button",
+            "fieldtype": "Button",
+            "label": "لغو انتخاب همه"
+        },
+        {
+            "fieldname": "bulk_pricing_items",
+            "fieldtype": "Table",
+            "label": "کالاهای قیمت‌گذاری دستی",
+            "options": "Bulk Pricing Item"
+        },
+        {
+            "fieldname": "bulk_pricing_update_section",
+            "fieldtype": "Section Break",
+            "label": "تنظیمات قیمت‌گذاری دستی"
+        },
+        {
+            "fieldname": "selected_cost_fields",
+            "fieldtype": "Select",
+            "label": "فیلد هزینه برای تغییر",
+            "options": "\nهزینه برق\nهزینه مصرفی\nهزینه اجاره\nهزینه کارگر\nهزینه پیمانکاری\nهزینه سربار",
+            "description": "فیلد هزینه‌ای که می‌خواهید تغییر دهید را انتخاب کنید"
+        },
+        {
+            "fieldname": "bulk_cost_column_break",
+            "fieldtype": "Column Break"
+        },
+        {
+            "fieldname": "bulk_cost_amount",
+            "fieldtype": "Currency",
+            "label": "مبلغ جدید",
+            "description": "مبلغ جدید برای فیلدهای انتخاب شده (به ریال)"
+        },
+        {
+            "fieldname": "apply_bulk_pricing_button",
+            "fieldtype": "Button",
+            "label": "اعمال قیمت‌گذاری دستی"
+        },
+        {
+            "fieldname": "clear_bulk_pricing_button",
+            "fieldtype": "Button",
+            "label": "پاک کردن لیست"
+        },
+        {
+            "fieldname": "dashboard_tab",
+            "fieldtype": "Tab Break",
+            "label": "داشبورد قیمت‌گذاری"
+        },
+        {
+            "fieldname": "dashboard_section",
+            "fieldtype": "Section Break",
+            "label": "خلاصه عملکرد مالی"
+        },
+        {
+            "fieldname": "dashboard_html",
+            "fieldtype": "HTML",
+            "label": "داشبورد"
+        },
+        {
+            "fieldname": "financial_analysis_section",
+            "fieldtype": "Section Break",
+            "label": "تحلیل نقطه سر به سر",
+            "collapsible": 1
+        },
+        {
+            "fieldname": "monthly_fixed_costs",
+            "fieldtype": "Currency",
+            "label": "هزینه‌های ثابت ماهانه (ریال)",
+            "description": "مجموع هزینه‌های ثابت ماهانه شرکت (اجاره، حقوق، بیمه و غیره)",
+            "default": 0
+        },
+        {
+            "fieldname": "load_fixed_costs_button",
+            "fieldtype": "Button",
+            "label": "بارگذاری خودکار هزینه‌های ثابت"
+        },
+        {
+            "fieldname": "target_monthly_revenue",
+            "fieldtype": "Currency",
+            "label": "هدف فروش ماهانه (ریال)",
+            "description": "مقدار فروش ماهانه که می‌خواهید به آن برسید",
+            "default": 20000000000
+        },
+        {
+            "fieldname": "financial_column_break",
+            "fieldtype": "Column Break"
+        },
+        {
+            "fieldname": "break_even_point",
+            "fieldtype": "Currency",
+            "label": "نقطه سر به سر (ریال)",
+            "read_only": 1,
+            "description": "مقدار فروش مورد نیاز برای پوشش تمام هزینه‌ها"
+        },
+        {
+            "fieldname": "profit_after_breakeven",
+            "fieldtype": "Currency",
+            "label": "سود پس از رسیدن به هدف (ریال)",
+            "read_only": 1,
+            "description": "مقدار سود پس از رسیدن به هدف فروش ماهانه"
+        },
+        {
+            "fieldname": "break_even_chart_section",
+            "fieldtype": "Section Break",
+            "label": "نمودار تحلیل سودآوری"
+        },
+        {
+            "fieldname": "break_even_chart_html",
+            "fieldtype": "HTML",
+            "label": "نمودار نقطه سر به سر"
+        },
+        {
+            "fieldname": "advanced_analytics_section",
+            "fieldtype": "Section Break",
+            "label": "تحلیل‌های پیشرفته",
+            "collapsible": 1
+        },
+        {
+            "fieldname": "waterfall_chart_html",
+            "fieldtype": "HTML",
+            "label": "نمودار آبشاری تحلیل هزینه‌ها"
+        },
+        {
+            "fieldname": "analytics_column_break",
+            "fieldtype": "Column Break"
+        },
+        {
+            "fieldname": "bubble_chart_html",
+            "fieldtype": "HTML",
+            "label": "نمودار حبابی قیمت و حجم فروش"
+        },
+        {
+            "fieldname": "forecasting_section",
+            "fieldtype": "Section Break",
+            "label": "پیش‌بینی فروش و سودآوری",
+            "collapsible": 1
+        },
+        {
+            "fieldname": "sales_forecast_html",
+            "fieldtype": "HTML",
+            "label": "پیش‌بینی فروش ماهانه"
+        },
+        {
+            "fieldname": "forecast_column_break",
+            "fieldtype": "Column Break"
+        },
+        {
+            "fieldname": "roi_analysis_html",
+            "fieldtype": "HTML",
+            "label": "تحلیل ROI محصولات"
+        },
+        {
+            "fieldname": "product_ranking_section",
+            "fieldtype": "Section Break",
+            "label": "رنکینگ و فرصت‌های قیمتی",
+            "collapsible": 1
+        },
+        {
+            "fieldname": "product_ranking_html",
+            "fieldtype": "HTML",
+            "label": "رنکینگ محصولات و فرصت‌های افزایش قیمت"
         }
     ],
     "index_web_pages_for_search": 1,

@@ -22,7 +22,26 @@ from enum import Enum
 from typing import List, Dict, Optional, Any
 from datetime import timedelta
 import asyncio
-import aiohttp
+
+# Try to import aiohttp with fallback
+try:
+    import aiohttp
+    AIOHTTP_AVAILABLE = True
+except ImportError:
+    AIOHTTP_AVAILABLE = False
+    # Create a dummy aiohttp module to prevent import errors
+    class DummyAiohttp:
+        class ClientSession:
+            def __init__(self, *args, **kwargs):
+                pass
+            async def __aenter__(self):
+                return self
+            async def __aexit__(self, *args):
+                pass
+            async def get(self, *args, **kwargs):
+                raise ImportError("aiohttp not installed")
+    
+    aiohttp = DummyAiohttp()
 
 # Advanced crawler imports with fallbacks
 try:

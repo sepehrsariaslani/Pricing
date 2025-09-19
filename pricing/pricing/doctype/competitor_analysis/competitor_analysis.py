@@ -3,7 +3,22 @@ from frappe.model.document import Document
 from frappe.utils import flt, cint, today, add_days, getdate, now_datetime
 import json
 from datetime import datetime, timedelta
-from .web_crawler import CompetitorWebCrawler
+
+# Try to import web crawler, but don't fail if dependencies are missing
+try:
+    from .web_crawler import CompetitorWebCrawler
+    WEB_CRAWLER_AVAILABLE = True
+except ImportError as e:
+    frappe.log_error(f"Web crawler dependencies not available: {e}", "Competitor Analysis Import")
+    WEB_CRAWLER_AVAILABLE = False
+    
+    # Create a dummy class to prevent errors
+    class CompetitorWebCrawler:
+        def __init__(self, *args, **kwargs):
+            pass
+        
+        def crawl_competitor_data(self, *args, **kwargs):
+            frappe.throw("Web crawler dependencies not installed. Please install: pip3 install --user --break-system-packages aiohttp beautifulsoup4 lxml")
 
 class CompetitorAnalysis(Document):
     def validate(self):

@@ -158,7 +158,7 @@ class AutoPriceList(Document):
             
             workstations = frappe.get_all("Workstation", 
                 fields=["name", "hour_rate_electricity", "hour_rate_consumable", 
-                       "hour_rate_rent", "hour_rate_labour"])
+                    "hour_rate_rent", "hour_rate_labour"])
             
             for ws in workstations:
                 self._workstation_cache[ws.name] = ws
@@ -334,6 +334,15 @@ class AutoPriceList(Document):
         # Batch load overhead costs once
         overhead_costs = self._get_cached_overhead_costs()
         
+        # ✅ ایجاد mapping قیمت‌های دستی یک بار برای تمام آیتم‌ها
+        manual_price_map = {}
+        manual_affected_items = 0
+        if self.manual_material_prices:
+            for manual_price in self.manual_material_prices:
+                if manual_price.item_code and manual_price.manual_price:
+                    manual_price_map[manual_price.item_code] = manual_price.manual_price
+            frappe.logger().info(f"🔧 قیمت‌های دستی آماده شد: {len(manual_price_map)} مورد")
+        
         # Calculate prices for each item with cached data
         for item in self.items:
             if not item.item_code:
@@ -360,59 +369,32 @@ class AutoPriceList(Document):
                 if not item.raw_material_cost:
                     item.raw_material_cost = self.calculate_raw_material_cost_with_substitutions(bom)
                 
-                # Initialize operation costs
-                item.electricity_cost = 0
-                item.consumable_cost = 0
-                item.rent_cost = 0
-                item.labor_cost = 0
+                # ✅ اعمال قیمت‌های دستی مواد اولیه اگر وجود دارد
+                if manual_price_map:
+                    # بررسی اینکه آیا این آیتم تحت تأثیر قیمت‌های دستی است
+                    if self.is_item_affected_by_manual_prices(item.item_code, manual_price_map):
+                        # محاسبه مجدد raw_material_cost با قیمت‌های دستی
+                        old_cost = item.raw_material_cost
+                        manual_adjusted_cost = self.calculate_item_cost_with_exploded_items(item.item_code)
+                        if manual_adjusted_cost > 0:
+                            frappe.logger().info(f"🔄 اعمال قیمت دستی برای {item.item_code}: {old_cost:,.0f} → {manual_adjusted_cost:,.0f}")
+                            item.raw_material_cost = manual_adjusted_cost
+                            manual_affected_items += 1
                 
-                # Use cached overhead costs instead of calculating each time
-                if overhead_costs and isinstance(overhead_costs, dict):
-                    item.overhead_cost = overhead_costs.get('total_overhead', 0)
-                else:
+                # ✅ محاسبه هزینه‌های عملیاتی با روش جدید (شامل BOM چند سطحی)
+                self.calculate_operation_cost(item)
+                
+                # Calculate overhead cost safely
+                try:
+                    if overhead_costs and isinstance(overhead_costs, dict):
+                        item.overhead_cost = overhead_costs.get('total_overhead', 0)
+                    else:
+                        item.overhead_cost = 0
+                except Exception as e:
+                    frappe.logger().error(f"Error setting overhead cost: {str(e)}")
                     item.overhead_cost = 0
-                
-                # Skip detailed operation calculations for speed
-                # Only calculate if operation_cost is zero
-                if not item.operation_cost:
-                    workstation_cache = self.get_cached_workstation_costs()
-                    if hasattr(bom, 'operations'):
-                        for operation in bom.operations[:3]:  # Limit to first 3 operations for speed
-                            # Calculate subcontracting costs
-                            item.subcontracting_cost += self.calculate_subcontracting_cost(operation)
-                            if operation.workstation and operation.time_in_mins:
-                                # Get workstation details from cache
-                                workstation_data = workstation_cache.get(operation.workstation, {})
-                                
-                                # Convert operation time from minutes to hours
-                                operation_time_in_hours = operation.time_in_mins / 60
-                                
-                                # Calculate costs based on operation time and hourly rates
-                                item.electricity_cost += workstation_data.get('hour_rate_electricity', 0) * operation_time_in_hours
-                                item.consumable_cost += workstation_data.get('hour_rate_consumable', 0) * operation_time_in_hours
-                                item.rent_cost += workstation_data.get('hour_rate_rent', 0) * operation_time_in_hours
-                                item.labor_cost += workstation_data.get('hour_rate_labour', 0) * operation_time_in_hours
-                
-                # Calculate total operation cost
-                item.operation_cost = (
-                    item.electricity_cost +
-                    item.consumable_cost +
-                    item.rent_cost +
-                    item.labor_cost +
-                    item.subcontracting_cost
-                )
             
-            # Calculate overhead cost safely
-            try:
-                if overhead_costs and isinstance(overhead_costs, dict):
-                    item.overhead_cost = overhead_costs.get('total_overhead', 0)
-                else:
-                    item.overhead_cost = 0
-            except Exception as e:
-                frappe.logger().error(f"Error setting overhead cost: {str(e)}")
-                item.overhead_cost = 0
-            
-            # Calculate total cost
+            # ✅ Calculate total cost (با در نظر گیری قیمت‌های دستی که در بالا اعمال شده)
             total_cost = (
                 (item.raw_material_cost or 0) +
                 (item.operation_cost or 0) +
@@ -439,6 +421,49 @@ class AutoPriceList(Document):
         
         # Skip heavy calculations for performance
         frappe.logger().info(f"محاسبه قیمت برای {len(self.items)} کالا تکمیل شد")
+        
+        # ✅ لاگ نهایی برای قیمت‌های دستی
+        if manual_price_map:
+            frappe.logger().info(f"🎯 خلاصه قیمت‌های دستی: {len(manual_price_map)} قیمت دستی، {manual_affected_items} آیتم تحت تأثیر قرار گرفت")
+
+    def get_bom_exploded_items(self, item_code):
+        """
+        دریافت لیست مواد اولیه از BOM exploded items
+        """
+        try:
+            # پیدا کردن BOM فعال
+            bom_name = frappe.db.get_value("BOM", {
+                "item": item_code,
+                "is_active": 1,
+                "is_default": 1
+            }, "name")
+            
+            if not bom_name:
+                return []
+            
+            # دریافت exploded items
+            exploded_items = frappe.get_all("BOM Explosion Item", 
+                filters={"parent": bom_name},
+                fields=["item_code", "qty_consumed_per_unit", "rate", "amount"]
+            )
+            
+            if not exploded_items:
+                # fallback به BOM items
+                bom = frappe.get_doc("BOM", bom_name)
+                exploded_items = []
+                for bom_item in bom.items:
+                    exploded_items.append({
+                        "item_code": bom_item.item_code,
+                        "qty_consumed_per_unit": bom_item.qty,
+                        "rate": bom_item.rate,
+                        "amount": bom_item.amount
+                    })
+            
+            return exploded_items
+            
+        except Exception as e:
+            frappe.logger().error(f"خطا در دریافت BOM exploded items برای {item_code}: {str(e)}")
+            return []
 
     def get_cached_overhead_cost(self):
         """
@@ -488,7 +513,866 @@ class AutoPriceList(Document):
             item.overhead_cost = total_overhead / total_items
         else:
             item.overhead_cost = 0
-    
+
+    def calculate_nested_operation_cost(self, item_code, processed_items=None):
+        """
+        محاسبه هزینه عملیات برای یک آیتم با در نظر گیری BOM چند سطحی
+        شامل: برق، اجاره، کارگر، مصرفی، پیمانکاری
+        """
+        if processed_items is None:
+            processed_items = set()
+        
+        # جلوگیری از حلقه بی‌نهایت
+        if item_code in processed_items:
+            return {
+                'total_operation_cost': 0,
+                'electricity_cost': 0,
+                'rent_cost': 0,
+                'labor_cost': 0,
+                'consumable_cost': 0,
+                'subcontracting_cost': 0
+            }
+        
+        processed_items.add(item_code)
+        
+        try:
+            # پیدا کردن BOM فعال
+            bom_name = frappe.db.get_value("BOM", {
+                "item": item_code,
+                "is_active": 1,
+                "is_default": 1
+            }, "name")
+            
+            if not bom_name:
+                return {
+                    'total_operation_cost': 0,
+                    'electricity_cost': 0,
+                    'rent_cost': 0,
+                    'labor_cost': 0,
+                    'consumable_cost': 0,
+                    'subcontracting_cost': 0
+                }
+            
+            # محاسبه هزینه‌های عملیاتی از operations این BOM
+            operation_costs = self.calculate_bom_operation_costs(bom_name)
+            
+            # محاسبه هزینه‌های عملیاتی آیتم‌های فرعی (nested)
+            bom = frappe.get_doc("BOM", bom_name)
+            for bom_item in bom.items:
+                # بررسی اینکه آیا این آیتم خودش BOM دارد یا نه
+                sub_bom_exists = frappe.db.exists("BOM", {
+                    "item": bom_item.item_code,
+                    "is_active": 1,
+                    "is_default": 1
+                })
+                
+                if sub_bom_exists:
+                    # محاسبه هزینه‌های عملیاتی آیتم فرعی
+                    sub_costs = self.calculate_nested_operation_cost(bom_item.item_code, processed_items.copy())
+                    
+                    # اضافه کردن هزینه‌های فرعی با در نظر گیری مقدار
+                    qty_factor = bom_item.qty or 1
+                    operation_costs['electricity_cost'] += sub_costs['electricity_cost'] * qty_factor
+                    operation_costs['rent_cost'] += sub_costs['rent_cost'] * qty_factor
+                    operation_costs['labor_cost'] += sub_costs['labor_cost'] * qty_factor
+                    operation_costs['consumable_cost'] += sub_costs['consumable_cost'] * qty_factor
+                    operation_costs['subcontracting_cost'] += sub_costs['subcontracting_cost'] * qty_factor
+            
+            # محاسبه مجموع
+            operation_costs['total_operation_cost'] = (
+                operation_costs['electricity_cost'] +
+                operation_costs['rent_cost'] +
+                operation_costs['labor_cost'] +
+                operation_costs['consumable_cost'] +
+                operation_costs['subcontracting_cost']
+            )
+            
+            frappe.logger().info(f"💡 هزینه‌های عملیاتی {item_code}: {operation_costs['total_operation_cost']:,.0f}")
+            
+            return operation_costs
+            
+        except Exception as e:
+            frappe.logger().error(f"خطا در محاسبه هزینه‌های عملیاتی {item_code}: {str(e)}")
+            return {
+                'total_operation_cost': 0,
+                'electricity_cost': 0,
+                'rent_cost': 0,
+                'labor_cost': 0,
+                'consumable_cost': 0,
+                'subcontracting_cost': 0
+            }
+
+    def calculate_bom_operation_costs(self, bom_name):
+        """
+        محاسبه هزینه‌های عملیاتی از operations یک BOM
+        """
+        costs = {
+            'electricity_cost': 0,
+            'rent_cost': 0,
+            'labor_cost': 0,
+            'consumable_cost': 0,
+            'subcontracting_cost': 0
+        }
+        
+        try:
+            # دریافت operations این BOM
+            operations = frappe.get_all("BOM Operation", 
+                filters={"parent": bom_name},
+                fields=["operation", "time_in_mins", "workstation", "hour_rate"]
+            )
+            
+            for operation in operations:
+                if not operation.workstation or not operation.time_in_mins:
+                    continue
+                
+                # دریافت اطلاعات workstation
+                workstation = frappe.get_doc("Workstation", operation.workstation)
+                
+                # تبدیل زمان از دقیقه به ساعت
+                time_in_hours = flt(operation.time_in_mins) / 60.0
+                
+                # محاسبه هزینه‌های مختلف
+                if hasattr(workstation, 'hour_rate_electricity') and workstation.hour_rate_electricity:
+                    costs['electricity_cost'] += flt(workstation.hour_rate_electricity) * time_in_hours
+                
+                if hasattr(workstation, 'hour_rate_rent') and workstation.hour_rate_rent:
+                    costs['rent_cost'] += flt(workstation.hour_rate_rent) * time_in_hours
+                
+                if hasattr(workstation, 'hour_rate_labour') and workstation.hour_rate_labour:
+                    costs['labor_cost'] += flt(workstation.hour_rate_labour) * time_in_hours
+                
+                if hasattr(workstation, 'hour_rate_consumable') and workstation.hour_rate_consumable:
+                    costs['consumable_cost'] += flt(workstation.hour_rate_consumable) * time_in_hours
+                
+                # هزینه پیمانکاری از subcontracting BOM
+                subcontracting_cost = self.calculate_subcontracting_cost_from_bom(bom_name, operation.operation)
+                costs['subcontracting_cost'] += subcontracting_cost
+                
+                frappe.logger().info(f"   🔧 {operation.operation} در {operation.workstation}: {time_in_hours:.2f}h")
+                frappe.logger().info(f"      برق: {flt(workstation.hour_rate_electricity or 0) * time_in_hours:,.0f}")
+                frappe.logger().info(f"      اجاره: {flt(workstation.hour_rate_rent or 0) * time_in_hours:,.0f}")
+                frappe.logger().info(f"      کارگر: {flt(workstation.hour_rate_labour or 0) * time_in_hours:,.0f}")
+                frappe.logger().info(f"      مصرفی: {flt(workstation.hour_rate_consumable or 0) * time_in_hours:,.0f}")
+            
+            return costs
+            
+        except Exception as e:
+            frappe.logger().error(f"خطا در محاسبه هزینه‌های operations BOM {bom_name}: {str(e)}")
+            return costs
+
+    def calculate_subcontracting_cost_from_bom(self, bom_name, operation_name):
+        """
+        محاسبه هزینه پیمانکاری از subcontracting BOM
+        """
+        try:
+            # پیدا کردن subcontracting BOM برای این عملیات
+            subcontracting_bom = frappe.db.get_value("BOM", {
+                "item": bom_name.split("-")[0],  # استخراج item code از BOM name
+                "operation": operation_name,
+                "is_active": 1,
+                "is_subcontracted": 1
+            }, ["name", "service_item"])
+            
+            if not subcontracting_bom:
+                return 0
+            
+            # اگر service_item وجود دارد، قیمت آن را دریافت کن
+            if subcontracting_bom and len(subcontracting_bom) > 1:
+                service_item = subcontracting_bom[1]  # service_item
+                if service_item:
+                    # دریافت قیمت service item
+                    service_price = self.get_item_price(service_item)
+                    frappe.logger().info(f"      پیمانکاری {operation_name}: {service_item} = {service_price:,.0f}")
+                    return service_price
+            
+            return 0
+            
+        except Exception as e:
+            frappe.logger().error(f"خطا در محاسبه هزینه پیمانکاری {operation_name}: {str(e)}")
+            return 0
+
+    def calculate_operation_cost(self, item):
+        """
+        محاسبه هزینه عملیات برای یک آیتم و به‌روزرسانی فیلدهای مربوطه
+        """
+        if not item.item_code:
+            item.operation_cost = 0
+            item.electricity_cost = 0
+            item.rent_cost = 0
+            item.labor_cost = 0
+            item.consumable_cost = 0
+            item.subcontracting_cost = 0
+            return
+        
+        # محاسبه هزینه‌های عملیاتی
+        operation_costs = self.calculate_nested_operation_cost(item.item_code)
+        
+        # به‌روزرسانی فیلدهای آیتم
+        item.operation_cost = operation_costs['total_operation_cost']
+        item.electricity_cost = operation_costs['electricity_cost']
+        item.rent_cost = operation_costs['rent_cost']
+        item.labor_cost = operation_costs['labor_cost']
+        item.consumable_cost = operation_costs['consumable_cost']
+        item.subcontracting_cost = operation_costs['subcontracting_cost']
+        
+        frappe.logger().info(f"💡 هزینه‌های عملیاتی {item.item_code} محاسبه شد: {item.operation_cost:,.0f}")
+        frappe.logger().info(f"   برق: {item.electricity_cost:,.0f}, اجاره: {item.rent_cost:,.0f}")
+        frappe.logger().info(f"   کارگر: {item.labor_cost:,.0f}, مصرفی: {item.consumable_cost:,.0f}")
+        frappe.logger().info(f"   پیمانکاری: {item.subcontracting_cost:,.0f}")
+
+    @frappe.whitelist()
+    def calculate_full_costing(self):
+        """
+        محاسبه بهای تمام شده - به‌روزرسانی کامل تمام هزینه‌ها
+        """
+        try:
+            frappe.logger().info("🚀 شروع محاسبه بهای تمام شده")
+            print("🚀 شروع محاسبه بهای تمام شده")
+            
+            if not self.items:
+                return {
+                    "success": False,
+                    "message": "هیچ آیتمی برای محاسبه وجود ندارد"
+                }
+            
+            updated_items = 0
+            
+            for item in self.items:
+                if not item.item_code:
+                    continue
+                
+                print(f"📊 محاسبه بهای تمام شده برای {item.item_code}...")
+                
+                # 1. محاسبه هزینه مواد اولیه (با قیمت‌های دستی)
+                old_raw_cost = item.raw_material_cost or 0
+                item.raw_material_cost = self.calculate_item_cost_with_exploded_items(item.item_code)
+                
+                # 2. محاسبه هزینه‌های عملیاتی (شامل BOM چند سطحی)
+                self.calculate_operation_cost(item)
+                
+                # 3. محاسبه هزینه سربار
+                self.calculate_overhead_cost(item)
+                
+                # 4. محاسبه مجموع هزینه
+                item.total_cost = (
+                    (item.raw_material_cost or 0) +
+                    (item.operation_cost or 0) +
+                    (item.overhead_cost or 0)
+                )
+                
+                # لاگ تغییرات
+                print(f"   ✅ {item.item_code} به‌روزرسانی شد:")
+                print(f"      مواد اولیه: {item.raw_material_cost:,.0f}")
+                print(f"      برق: {item.electricity_cost:,.0f}")
+                print(f"      اجاره: {item.rent_cost:,.0f}")
+                print(f"      کارگر: {item.labor_cost:,.0f}")
+                print(f"      مصرفی: {item.consumable_cost:,.0f}")
+                print(f"      پیمانکاری: {item.subcontracting_cost:,.0f}")
+                print(f"      عملیات: {item.operation_cost:,.0f}")
+                print(f"      سربار: {item.overhead_cost:,.0f}")
+                print(f"      مجموع: {item.total_cost:,.0f}")
+                
+                updated_items += 1
+            
+            # ذخیره تغییرات
+            if updated_items > 0:
+                for item in self.items:
+                    item.db_update()
+                
+                self.save()
+                frappe.db.commit()
+                
+                message = f"🎉 بهای تمام شده برای {updated_items} آیتم محاسبه شد"
+                print(message)
+                frappe.logger().info(message)
+                
+                return {
+                    "success": True,
+                    "message": message,
+                    "updated_items": updated_items,
+                    "refresh_needed": True
+                }
+            else:
+                return {
+                    "success": False,
+                    "message": "هیچ آیتمی برای به‌روزرسانی وجود نداشت"
+                }
+                
+        except Exception as e:
+            error_msg = f"خطا در محاسبه بهای تمام شده: {str(e)}"
+            frappe.logger().error(error_msg)
+            print(f"❌ {error_msg}")
+            import traceback
+            print(f"🔍 جزئیات خطا: {traceback.format_exc()}")
+            
+            return {
+                "success": False,
+                "message": error_msg,
+                "error": str(e)
+            }
+
+    @frappe.whitelist()
+    def get_item_cost_breakdown(self, item_code):
+        """
+        گزارش جامع جزئیات هزینه یک محصول - نمایش تمام سطوح BOM و عملیات
+        """
+        try:
+            if not item_code:
+                return {
+                    "success": False,
+                    "message": "کد محصول ارائه نشده است"
+                }
+            
+            # پیدا کردن BOM فعال
+            bom_name = frappe.db.get_value("BOM", {
+                "item": item_code,
+                "is_active": 1,
+                "is_default": 1
+            }, "name")
+            
+            frappe.logger().info(f"🔍 جستجوی BOM برای {item_code}: {bom_name}")
+            
+            if not bom_name:
+                return {
+                    "success": False,
+                    "message": f"BOM فعالی برای محصول {item_code} وجود ندارد"
+                }
+            
+            # بررسی وضعیت BOM
+            bom_doc = frappe.get_doc("BOM", bom_name)
+            frappe.logger().info(f"📋 BOM {bom_name}: is_active={bom_doc.is_active}, is_default={bom_doc.is_default}")
+            frappe.logger().info(f"📦 تعداد items: {len(bom_doc.items)}")
+            frappe.logger().info(f"⚙️ تعداد operations: {len(bom_doc.operations) if hasattr(bom_doc, 'operations') else 0}")
+            
+            # بررسی exploded_items (child table)
+            exploded_items_count = len(bom_doc.exploded_items) if hasattr(bom_doc, 'exploded_items') else 0
+            frappe.logger().info(f"💎 تعداد exploded_items: {exploded_items_count}")
+            
+            # اگر exploded_items وجود ندارد، از BOM Items استفاده کن
+            if exploded_items_count == 0:
+                frappe.logger().info(f"⚠️ exploded_items وجود ندارد، از BOM Items استفاده می‌کنم")
+            
+            # دریافت اطلاعات محصول
+            item_info = frappe.get_doc("Item", item_code)
+            bom_doc = frappe.get_doc("BOM", bom_name)
+            
+            # محاسبه جامع هزینه‌ها از تمام سطوح - استفاده از set خالی
+            breakdown_result = self.get_comprehensive_cost_breakdown(item_code, bom_name, set())
+            
+            return {
+                "success": True,
+                "item_code": item_code,
+                "item_name": item_info.item_name,
+                "bom_name": bom_name,
+                **breakdown_result
+            }
+            
+        except Exception as e:
+            error_msg = f"خطا در دریافت جزئیات هزینه {item_code}: {str(e)}"
+            frappe.logger().error(error_msg)
+            import traceback
+            frappe.logger().error(f"جزئیات خطا: {traceback.format_exc()}")
+            
+            return {
+                "success": False,
+                "message": error_msg,
+                "error": str(e)
+            }
+
+    def get_comprehensive_cost_breakdown(self, item_code, bom_name, processed_boms=None, level=0):
+        """
+        محاسبه جامع هزینه‌ها از تمام سطوح BOM با استفاده از exploded_items و operations
+        """
+        if processed_boms is None:
+            processed_boms = set()
+        
+        # حذف چک processed_boms برای حل مشکل
+        # if bom_name in processed_boms:
+        #     return {...}
+        
+        processed_boms.add(bom_name)
+        
+        try:
+            bom_doc = frappe.get_doc("BOM", bom_name)
+            
+            # 1. محاسبه هزینه مواد اولیه - استفاده از BOM cost موجود
+            raw_material_cost = flt(bom_doc.raw_material_cost or 0)
+            frappe.logger().info(f"💰 هزینه مواد اولیه از BOM: {raw_material_cost:,.0f}")
+            
+            # اگر صفر است، محاسبه دستی
+            if raw_material_cost == 0:
+                raw_material_cost = self.calculate_raw_material_from_bom_items_recursive(bom_name)
+                frappe.logger().info(f"💰 هزینه مواد اولیه محاسبه دستی: {raw_material_cost:,.0f}")
+            
+            # 2. جمع‌آوری تمام operations از تمام سطوح - فراخوانی مستقیم
+            frappe.logger().info(f"🔍 شروع جمع‌آوری operations از {bom_name}")
+            
+            try:
+                # فراخوانی مستقیم بدون processed_boms
+                all_operations = self.collect_all_operations_from_bom_tree(bom_name)
+                frappe.logger().info(f"⚙️ تعداد operations جمع‌آوری شده: {len(all_operations)}")
+                
+                # دیباگ: نمایش operations
+                if all_operations:
+                    frappe.logger().info(f"✅ {len(all_operations)} operations پیدا شدند:")
+                    for i, op in enumerate(all_operations[:3]):
+                        frappe.logger().info(f"   {i+1}. {op.get('operation', 'نامشخص')}: {op.get('time_in_mins', 0)} دقیقه - {op.get('workstation', 'نامشخص')}")
+                else:
+                    frappe.logger().error(f"❌ هیچ operation پیدا نشد!")
+                    
+            except Exception as e:
+                frappe.logger().error(f"❌ خطا در جمع‌آوری operations: {str(e)}")
+                import traceback
+                frappe.logger().error(f"جزئیات خطا: {traceback.format_exc()}")
+                all_operations = []
+            
+            # همیشه از operating_cost موجود در BOM استفاده کن اگر operations خالی است
+            if not all_operations and bom_doc.operating_cost and bom_doc.operating_cost > 0:
+                frappe.logger().info(f"⚠️ operations پیدا نشد، از operating_cost موجود استفاده می‌کنم: {bom_doc.operating_cost:,.0f}")
+                # ایجاد یک operation فرضی
+                all_operations = [{
+                    'operation': 'عملیات کلی از BOM',
+                    'time_in_mins': 0,
+                    'workstation': 'محاسبه شده از BOM',
+                    'hour_rate': 0,
+                    'description': 'محاسبه شده از operating_cost موجود در BOM',
+                    'bom_name': bom_name,
+                    'level': 0,
+                    'qty_factor': 1,
+                    'total_cost': flt(bom_doc.operating_cost or 0)
+                }]
+                frappe.logger().info(f"✅ operation فرضی ایجاد شد با هزینه {bom_doc.operating_cost:,.0f}")
+            elif all_operations:
+                frappe.logger().info(f"✅ {len(all_operations)} operation پیدا شد، ادامه پردازش...")
+            else:
+                frappe.logger().error(f"❌ هیچ operation و operating_cost پیدا نشد!")
+            
+            # 3. محاسبه هزینه‌های عملیاتی
+            operations_breakdown = []
+            total_operation_costs = {
+                'electricity_cost': 0,
+                'rent_cost': 0,
+                'labor_cost': 0,
+                'consumable_cost': 0,
+                'subcontracting_cost': 0
+            }
+            
+            frappe.logger().info(f"🔄 شروع پردازش {len(all_operations)} operation...")
+            frappe.logger().info(f"🔍 نوع all_operations: {type(all_operations)}")
+            frappe.logger().info(f"🔍 all_operations خالی است؟ {not all_operations}")
+            
+            if not all_operations:
+                frappe.logger().error("❌ all_operations خالی است!")
+            
+            for i, op_info in enumerate(all_operations):
+                frappe.logger().info(f"🔄 پردازش operation {i+1}: {op_info.get('operation', 'نامشخص')}")
+                # اگر operation از operating_cost موجود ساخته شده، هزینه را مستقیم استفاده کن
+                if op_info.get('total_cost'):
+                    operation_costs = {
+                        'electricity_cost': 0,
+                        'rent_cost': 0, 
+                        'labor_cost': op_info['total_cost'],
+                        'consumable_cost': 0,
+                        'subcontracting_cost': 0
+                    }
+                    
+                    operation_breakdown = {
+                        'operation': op_info['operation'],
+                        'time_in_mins': op_info['time_in_mins'],
+                        'workstation': op_info['workstation'],
+                        'level': op_info.get('level', 0),
+                        'bom_name': op_info.get('bom_name', bom_name),
+                        'qty_factor': op_info.get('qty_factor', 1),
+                        'costs': operation_costs
+                    }
+                else:
+                    # محاسبه هزینه‌های جزئی این operation
+                    operation_detail = self.calculate_operation_detail_cost(op_info)
+                    operation_costs = operation_detail.get('costs', {})
+                    
+                    operation_breakdown = {
+                        'operation': operation_detail.get('operation', op_info.get('operation', '')),
+                        'time_in_mins': operation_detail.get('time_in_mins', op_info.get('time_in_mins', 0)),
+                        'workstation': operation_detail.get('workstation', op_info.get('workstation', '')),
+                        'level': operation_detail.get('level', op_info.get('level', 0)),
+                        'bom_name': operation_detail.get('bom_name', op_info.get('bom_name', bom_name)),
+                        'qty_factor': operation_detail.get('qty_factor', op_info.get('qty_factor', 1)),
+                        'costs': operation_costs
+                    }
+                
+                operations_breakdown.append(operation_breakdown)
+                
+                # جمع هزینه‌ها
+                for cost_type in total_operation_costs:
+                    if cost_type in operation_costs:
+                        old_value = total_operation_costs[cost_type]
+                        total_operation_costs[cost_type] += flt(operation_costs[cost_type] or 0)
+                        if i < 3:  # فقط برای 3 تای اول لاگ کن
+                            frappe.logger().info(f"      📊 {cost_type}: {old_value:,.0f} + {operation_costs[cost_type]:,.0f} = {total_operation_costs[cost_type]:,.0f}")
+                
+                op_total = sum(operation_costs.values())
+                frappe.logger().info(f"   {i+1}. 💰 هزینه {operation_breakdown.get('operation', 'نامشخص')}: {op_total:,.0f}")
+                frappe.logger().info(f"      ✅ operation اضافه شد به operations_breakdown")
+                
+                if i < 3:  # نمایش جزئیات 3 تای اول
+                    frappe.logger().info(f"      workstation: {operation_breakdown.get('workstation', 'نامشخص')}")
+                    frappe.logger().info(f"      time: {operation_breakdown.get('time_in_mins', 0)} دقیقه")
+                    frappe.logger().info(f"      level: {operation_breakdown.get('level', 0)}")
+                    for cost_type, cost_value in operation_costs.items():
+                        if cost_value > 0:
+                            frappe.logger().info(f"        {cost_type}: {cost_value:,.0f}")
+            
+            # 4. محاسبه هزینه سربار
+            overhead_cost = 0
+            if self.items:
+                total_overhead = self.get_cached_overhead_cost()
+                overhead_cost = total_overhead / len(self.items) if len(self.items) > 0 else 0
+            
+            # 5. ساختار سطوح BOM
+            bom_levels = self.build_bom_level_structure(bom_name, processed_boms.copy())
+            
+            total_operation_cost = sum(total_operation_costs.values())
+            total_cost = raw_material_cost + total_operation_cost + overhead_cost
+            
+            frappe.logger().info(f"📊 خلاصه نهایی:")
+            frappe.logger().info(f"   💎 مواد اولیه: {raw_material_cost:,.0f}")
+            frappe.logger().info(f"   ⚙️ عملیات: {total_operation_cost:,.0f}")
+            frappe.logger().info(f"   📈 سربار: {overhead_cost:,.0f}")
+            frappe.logger().info(f"   🎯 کل: {total_cost:,.0f}")
+            frappe.logger().info(f"   📋 تعداد operations: {len(operations_breakdown)}")
+            
+            return {
+                "raw_material_cost": raw_material_cost,
+                "operations_breakdown": operations_breakdown,
+                "total_operation_costs": total_operation_costs,
+                "total_operation_cost": total_operation_cost,
+                "overhead_cost": overhead_cost,
+                "total_cost": total_cost,
+                "bom_levels": bom_levels
+            }
+            
+        except Exception as e:
+            frappe.logger().error(f"خطا در محاسبه جامع هزینه {bom_name}: {str(e)}")
+            return {
+                "raw_material_cost": 0,
+                "operations_breakdown": [],
+                "total_operation_costs": {},
+                "total_operation_cost": 0,
+                "overhead_cost": 0,
+                "total_cost": 0,
+                "bom_levels": []
+            }
+
+    def calculate_raw_material_from_exploded_items(self, bom_name):
+        """
+        محاسبه هزینه مواد اولیه از exploded_items (child table در BOM)
+        """
+        try:
+            # دریافت BOM document
+            bom_doc = frappe.get_doc("BOM", bom_name)
+            
+            # دریافت exploded_items از child table
+            exploded_items = bom_doc.exploded_items if hasattr(bom_doc, 'exploded_items') else []
+            
+            frappe.logger().info(f"🔍 BOM {bom_name}: {len(exploded_items)} exploded_item پیدا شد")
+            
+            # اگر exploded_items خالی است، از BOM Items استفاده کن
+            if not exploded_items:
+                frappe.logger().info(f"⚠️ exploded_items خالی است، از BOM Items استفاده می‌کنم")
+                return self.calculate_raw_material_from_bom_items_recursive(bom_name)
+            
+            total_raw_cost = 0
+            
+            for exploded_item in exploded_items:
+                item_code = exploded_item.item_code
+                qty = flt(exploded_item.qty or exploded_item.stock_qty or 0)
+                
+                # بررسی قیمت دستی
+                manual_price = self.get_manual_material_price(item_code)
+                if manual_price and manual_price > 0:
+                    item_cost = manual_price * qty
+                    frappe.logger().info(f"   📌 قیمت دستی {item_code}: {manual_price:,.0f} × {qty} = {item_cost:,.0f}")
+                else:
+                    # استفاده از rate موجود در exploded_item
+                    rate = flt(exploded_item.rate or 0)
+                    item_cost = rate * qty
+                    frappe.logger().info(f"   💰 قیمت عادی {item_code}: {rate:,.0f} × {qty} = {item_cost:,.0f}")
+                
+                total_raw_cost += item_cost
+            
+            frappe.logger().info(f"💎 مجموع هزینه مواد اولیه از exploded_items: {total_raw_cost:,.0f}")
+            return total_raw_cost
+            
+        except Exception as e:
+            frappe.logger().error(f"خطا در محاسبه مواد اولیه از exploded_items {bom_name}: {str(e)}")
+            # fallback به BOM Items
+            return self.calculate_raw_material_from_bom_items_recursive(bom_name)
+
+    def calculate_raw_material_from_bom_items_recursive(self, bom_name, processed_boms=None):
+        """
+        محاسبه هزینه مواد اولیه از BOM Items به صورت recursive
+        """
+        if processed_boms is None:
+            processed_boms = set()
+        
+        if bom_name in processed_boms:
+            return 0
+        
+        processed_boms.add(bom_name)
+        
+        try:
+            bom_doc = frappe.get_doc("BOM", bom_name)
+            total_cost = 0
+            
+            for bom_item in bom_doc.items:
+                item_code = bom_item.item_code
+                qty = flt(bom_item.qty or 0)
+                
+                # بررسی آیا این آیتم خودش BOM دارد
+                sub_bom_name = frappe.db.get_value("BOM", {
+                    "item": item_code,
+                    "is_active": 1,
+                    "is_default": 1
+                }, "name")
+                
+                if sub_bom_name and sub_bom_name not in processed_boms:
+                    # اگر BOM فرعی دارد، recursive محاسبه کن
+                    sub_cost = self.calculate_raw_material_from_bom_items_recursive(sub_bom_name, processed_boms.copy())
+                    item_cost = sub_cost * qty
+                    frappe.logger().info(f"   🔗 BOM فرعی {item_code}: {sub_cost:,.0f} × {qty} = {item_cost:,.0f}")
+                else:
+                    # اگر BOM ندارد، ماده خام است
+                    manual_price = self.get_manual_material_price(item_code)
+                    if manual_price and manual_price > 0:
+                        item_cost = manual_price * qty
+                        frappe.logger().info(f"   📌 قیمت دستی {item_code}: {manual_price:,.0f} × {qty} = {item_cost:,.0f}")
+                    else:
+                        rate = flt(bom_item.rate or 0)
+                        item_cost = rate * qty
+                        frappe.logger().info(f"   💰 ماده خام {item_code}: {rate:,.0f} × {qty} = {item_cost:,.0f}")
+                
+                total_cost += item_cost
+            
+            return total_cost
+            
+        except Exception as e:
+            frappe.logger().error(f"خطا در محاسبه recursive مواد اولیه {bom_name}: {str(e)}")
+            return 0
+
+    def collect_all_operations_from_bom_tree(self, bom_name, processed_boms=None, level=0):
+        """
+        جمع‌آوری تمام operations از تمام سطوح BOM به صورت بازگشتی
+        مراحل:
+        1. operations مستقیم BOM فعلی
+        2. برای هر item در BOM، اگر BOM دارد، operations آن را هم بگیر
+        3. به صورت بازگشتی برای تمام سطوح
+        """
+        if processed_boms is None:
+            processed_boms = set()
+        
+        # جلوگیری از حلقه بی‌نهایت
+        if bom_name in processed_boms:
+            frappe.logger().info(f"⚠️ BOM {bom_name} قبلاً پردازش شده، رد می‌شود")
+            return []
+        
+        processed_boms.add(bom_name)
+        all_operations = []
+        
+        try:
+            frappe.logger().info(f"🔍 سطح {level}: شروع پردازش BOM {bom_name}")
+            
+            # دریافت BOM document
+            bom_doc = frappe.get_doc("BOM", bom_name)
+            
+            # مرحله 1: دریافت operations مستقیم این BOM
+            if hasattr(bom_doc, 'operations') and bom_doc.operations:
+                frappe.logger().info(f"✅ سطح {level}: {len(bom_doc.operations)} operation مستقیم در {bom_name}")
+                
+                for operation in bom_doc.operations:
+                    op_dict = {
+                        'operation': operation.operation,
+                        'time_in_mins': flt(operation.time_in_mins or 0),
+                        'workstation': operation.workstation,
+                        'hour_rate': flt(operation.hour_rate or 0),
+                        'description': getattr(operation, 'description', ''),
+                        'bom_name': bom_name,
+                        'level': level,
+                        'qty_factor': 1.0,
+                        'parent_item': ''
+                    }
+                    
+                    frappe.logger().info(f"   ⚙️ {op_dict['operation']}: {op_dict['time_in_mins']} دقیقه در {op_dict['workstation']}")
+                    all_operations.append(op_dict)
+            else:
+                frappe.logger().info(f"⚠️ سطح {level}: هیچ operation مستقیمی در {bom_name} پیدا نشد")
+            
+            # مرحله 2: بررسی items این BOM برای پیدا کردن BOM های فرعی
+            if hasattr(bom_doc, 'items') and bom_doc.items:
+                frappe.logger().info(f"🔍 سطح {level}: بررسی {len(bom_doc.items)} item در {bom_name}")
+                
+                for bom_item in bom_doc.items:
+                    # جستجوی BOM فعال برای این item
+                    sub_bom_name = frappe.db.get_value("BOM", {
+                        "item": bom_item.item_code,
+                        "is_active": 1,
+                        "is_default": 1
+                    }, "name")
+                    
+                    if sub_bom_name:
+                        frappe.logger().info(f"🔍 سطح {level}: آیتم {bom_item.item_code} دارای BOM فرعی: {sub_bom_name}")
+                        
+                        # فراخوانی بازگشتی برای BOM فرعی
+                        sub_operations = self.collect_all_operations_from_bom_tree(
+                            sub_bom_name, processed_boms, level + 1
+                        )
+                        
+                        if sub_operations:
+                            frappe.logger().info(f"✅ سطح {level}: {len(sub_operations)} operation از BOM فرعی {sub_bom_name}")
+                            
+                            # اعمال ضریب مقدار
+                            qty_factor = flt(bom_item.qty or 1)
+                            for op in sub_operations:
+                                print(f"      ضریب: {op.get('qty_factor', 1)}, parent: {op.get('parent_item', 'اصلی')}")
+                                op['qty_factor'] = op.get('qty_factor', 1.0) * qty_factor
+                                op['parent_item'] = bom_item.item_code
+                                frappe.logger().info(f"      📊 {op['operation']}: ضریب نهایی={op['qty_factor']:.2f}")
+                            
+                            all_operations.extend(sub_operations)
+                        else:
+                            frappe.logger().info(f"⚠️ سطح {level}: هیچ operation از BOM فرعی {sub_bom_name} پیدا نشد")
+                    else:
+                        frappe.logger().info(f"ℹ️ سطح {level}: آیتم {bom_item.item_code} BOM ندارد")
+            
+            frappe.logger().info(f"📊 سطح {level}: مجموع {len(all_operations)} operation از {bom_name} جمع‌آوری شد")
+            return all_operations
+            
+        except Exception as e:
+            frappe.logger().error(f"❌ خطا در پردازش BOM {bom_name} در سطح {level}: {str(e)}")
+            import traceback
+            frappe.logger().error(f"جزئیات خطا: {traceback.format_exc()}")
+            return []
+
+    def calculate_operation_detail_cost(self, operation_info):
+        """
+        محاسبه جزئیات هزینه یک عملیات
+{{ ... }}
+        """
+        operation_detail = {
+            'operation': operation_info.get('operation', ''),
+            'workstation': operation_info.get('workstation', ''),
+            'time_in_mins': operation_info.get('time_in_mins', 0),
+            'time_in_hours': (operation_info.get('time_in_mins', 0) or 0) / 60.0,
+            'description': operation_info.get('description', ''),
+            'bom_name': operation_info.get('bom_name', ''),
+            'level': operation_info.get('level', 0),
+            'qty_factor': operation_info.get('qty_factor', 1),
+            'parent_item': operation_info.get('parent_item', ''),
+            'costs': {
+                'electricity_cost': 0,
+                'rent_cost': 0,
+                'labor_cost': 0,
+                'consumable_cost': 0,
+                'subcontracting_cost': 0
+            },
+            'workstation_rates': {}
+        }
+        
+        if operation_info.get('workstation') and operation_info.get('time_in_mins'):
+            try:
+                workstation = frappe.get_doc("Workstation", operation_info['workstation'])
+                time_in_hours = (operation_info['time_in_mins'] or 0) / 60.0
+                qty_factor = operation_info.get('qty_factor', 1)
+                
+                # محاسبه هزینه‌های مختلف با در نظر گیری qty_factor
+                if hasattr(workstation, 'hour_rate_electricity') and workstation.hour_rate_electricity:
+                    cost = flt(workstation.hour_rate_electricity or 0) * flt(time_in_hours) * flt(qty_factor)
+                    operation_detail['costs']['electricity_cost'] = cost
+                
+                if hasattr(workstation, 'hour_rate_rent') and workstation.hour_rate_rent:
+                    cost = flt(workstation.hour_rate_rent or 0) * flt(time_in_hours) * flt(qty_factor)
+                    operation_detail['costs']['rent_cost'] = cost
+                
+                if hasattr(workstation, 'hour_rate_labour') and workstation.hour_rate_labour:
+                    cost = flt(workstation.hour_rate_labour or 0) * flt(time_in_hours) * flt(qty_factor)
+                    operation_detail['costs']['labor_cost'] = cost
+                
+                if hasattr(workstation, 'hour_rate_consumable') and workstation.hour_rate_consumable:
+                    cost = flt(workstation.hour_rate_consumable or 0) * flt(time_in_hours) * flt(qty_factor)
+                    operation_detail['costs']['consumable_cost'] = cost
+                
+                # هزینه پیمانکاری
+                subcontracting_cost = self.calculate_subcontracting_cost_from_bom(
+                    operation_info.get('bom_name', ''), operation_info.get('operation', '')
+                ) * qty_factor
+                operation_detail['costs']['subcontracting_cost'] = subcontracting_cost
+                
+                # ذخیره نرخ‌های ساعتی
+                operation_detail['workstation_rates'] = {
+                    'hour_rate_electricity': flt(workstation.hour_rate_electricity or 0),
+                    'hour_rate_rent': flt(workstation.hour_rate_rent or 0),
+                    'hour_rate_labour': flt(workstation.hour_rate_labour or 0),
+                    'hour_rate_consumable': flt(workstation.hour_rate_consumable or 0)
+                }
+                
+            except Exception as e:
+                frappe.logger().error(f"خطا در محاسبه هزینه عملیات {operation_info.get('operation', '')}: {str(e)}")
+        
+        return operation_detail
+
+    def build_bom_level_structure(self, bom_name, processed_boms=None, level=0):
+        """
+        ساخت ساختار سطوح BOM برای نمایش
+        """
+        if processed_boms is None:
+            processed_boms = set()
+        
+        if bom_name in processed_boms:
+            return []
+        
+        processed_boms.add(bom_name)
+        bom_levels = []
+        
+        try:
+            bom_doc = frappe.get_doc("BOM", bom_name)
+            item_name = frappe.db.get_value("Item", bom_doc.item, "item_name")
+            
+            level_info = {
+                'level': level,
+                'bom_name': bom_name,
+                'item_code': bom_doc.item,
+                'item_name': item_name,
+                'sub_items': []
+            }
+            
+            # اضافه کردن آیتم‌های فرعی
+            for bom_item in bom_doc.items:
+                sub_bom_name = frappe.db.get_value("BOM", {
+                    "item": bom_item.item_code,
+                    "is_active": 1,
+                    "is_default": 1
+                }, "name")
+                
+                item_info = {
+                    'item_code': bom_item.item_code,
+                    'item_name': frappe.db.get_value("Item", bom_item.item_code, "item_name"),
+                    'qty': bom_item.qty,
+                    'has_bom': bool(sub_bom_name)
+                }
+                
+                level_info['sub_items'].append(item_info)
+                
+                if sub_bom_name and sub_bom_name not in processed_boms:
+                    sub_levels = self.build_bom_level_structure(sub_bom_name, processed_boms.copy(), level + 1)
+                    bom_levels.extend(sub_levels)
+            
+            bom_levels.insert(0, level_info)
+            return bom_levels
+            
+        except Exception as e:
+            frappe.logger().error(f"خطا در ساخت ساختار سطوح BOM {bom_name}: {str(e)}")
+            return []
+
+
     def calculate_raw_material_cost_with_substitutions(self, bom):
         """
         محاسبه هزینه مواد اولیه با در نظر گیری جایگزینی مواد
@@ -542,14 +1426,27 @@ class AutoPriceList(Document):
         محاسبه قیمت نهایی برای یک آیتم با اعمال pricing steps
         """
         try:
-            # شروع با هزینه مواد اولیه
-            current_price = flt(item.raw_material_cost or 0)
+            # ✅ محاسبه total_cost با در نظر گیری تمام هزینه‌ها
+            total_cost = (
+                flt(item.raw_material_cost or 0) +
+                flt(item.operation_cost or 0) +
+                flt(item.overhead_cost or 0)
+            )
+            
+            # به‌روزرسانی total_cost در آیتم
+            item.total_cost = total_cost
+            
+            # شروع با total_cost به جای فقط raw_material_cost
+            current_price = total_cost
             
             if current_price <= 0:
                 return 0
             
             frappe.logger().info(f"      🧮 شروع محاسبه قیمت نهایی برای {item.item_code}")
-            frappe.logger().info(f"         هزینه مواد اولیه: {current_price:,.0f}")
+            frappe.logger().info(f"         مواد اولیه: {flt(item.raw_material_cost or 0):,.0f}")
+            frappe.logger().info(f"         هزینه عملیات: {flt(item.operation_cost or 0):,.0f}")
+            frappe.logger().info(f"         هزینه سربار: {flt(item.overhead_cost or 0):,.0f}")
+            frappe.logger().info(f"         مجموع هزینه (total_cost): {total_cost:,.0f}")
             
             # اعمال pricing steps به ترتیب
             if self.pricing_steps:
@@ -2847,48 +3744,69 @@ class AutoPriceList(Document):
                 continue
             
             
-    @frappe.whitelist() 
+    @frappe.whitelist()
     def get_items_bom_status(self):
         """
         بررسی وضعیت BOM فعال برای تمام محصولات در لیست
-        برمی‌گرداند: لیست محصولاتی که BOM فعال ندارند
+        برمی‌گرداند: 
+        - لیست محصولاتی که BOM فعال ندارند (قرمز)
+        - لیست محصولاتی که BOM دارند اما ارسال نشده (زرد)
         """
         try:
-            items_without_bom = []
+            items_without_bom = []  # قرمز - بدون BOM
+            items_with_unsubmitted_bom = []  # زرد - BOM دارند اما ارسال نشده
             
             if not self.items:
-                return {"items_without_bom": []}
+                return {
+                    "items_without_bom": [],
+                    "items_with_unsubmitted_bom": []
+                }
             
             for item in self.items:
                 if not item.item_code:
                     continue
                 
                 # بررسی وجود BOM فعال و پیش‌فرض
-                bom_exists = frappe.db.exists("BOM", {
+                bom_data = frappe.db.get_value("BOM", {
                     "item": item.item_code,
                     "is_active": 1,
                     "is_default": 1
-                })
+                }, ["name", "docstatus"], as_dict=True)
                 
-                if not bom_exists:
+                if not bom_data:
+                    # هیچ BOM فعال و پیش‌فرضی ندارد - قرمز
                     items_without_bom.append({
                         "item_code": item.item_code,
                         "item_name": item.item_name or item.item_code,
                         "idx": item.idx
                     })
+                elif bom_data.docstatus == 0:
+                    # BOM دارد اما ارسال نشده - زرد
+                    items_with_unsubmitted_bom.append({
+                        "item_code": item.item_code,
+                        "item_name": item.item_name or item.item_code,
+                        "idx": item.idx,
+                        "bom_name": bom_data.name
+                    })
             
-            frappe.logger().info(f"🔍 محصولات بدون BOM فعال: {len(items_without_bom)} از {len(self.items)}")
+            frappe.logger().info(f"🔍 وضعیت BOM محصولات:")
+            frappe.logger().info(f"   🔴 بدون BOM: {len(items_without_bom)}")
+            frappe.logger().info(f"   🟡 BOM ارسال نشده: {len(items_with_unsubmitted_bom)}")
+            frappe.logger().info(f"   ✅ BOM ارسال شده: {len(self.items) - len(items_without_bom) - len(items_with_unsubmitted_bom)}")
             
             return {
                 "items_without_bom": items_without_bom,
+                "items_with_unsubmitted_bom": items_with_unsubmitted_bom,
                 "total_items": len(self.items),
-                "items_without_bom_count": len(items_without_bom)
+                "items_without_bom_count": len(items_without_bom),
+                "items_with_unsubmitted_bom_count": len(items_with_unsubmitted_bom)
             }
             
         except Exception as e:
             frappe.logger().error(f"خطا در بررسی وضعیت BOM: {str(e)}")
             return {
                 "items_without_bom": [],
+                "items_with_unsubmitted_bom": [],
                 "error": str(e)
             }
 
@@ -3694,7 +4612,25 @@ def recalculate_with_manual_prices(price_list_name):
     print(f"🚀 ==> price_list_name: {price_list_name}")
     frappe.logger().info(f"🚀 ==> recalculate_with_manual_prices فراخوانی شد برای {price_list_name}")
     try:
+        # بررسی اولیه
+        if not price_list_name:
+            raise Exception("نام price list ارائه نشده است")
+        
+        # بررسی وجود document
+        if not frappe.db.exists("Auto Price List", price_list_name):
+            raise Exception(f"Auto Price List با نام {price_list_name} وجود ندارد")
+        
         price_list = frappe.get_doc("Auto Price List", price_list_name)
+        print(f"✅ Document loaded successfully: {price_list.name}")
+        
+        # بررسی وجود متدهای ضروری
+        if not hasattr(price_list, 'is_item_affected_by_manual_prices'):
+            raise Exception("متد is_item_affected_by_manual_prices وجود ندارد")
+        if not hasattr(price_list, 'calculate_item_cost_with_exploded_items'):
+            raise Exception("متد calculate_item_cost_with_exploded_items وجود ندارد")
+        if not hasattr(price_list, 'calculate_final_price_for_item'):
+            raise Exception("متد calculate_final_price_for_item وجود ندارد")
+        print("✅ تمام متدهای ضروری موجود هستند")
         
         frappe.logger().info("🚀 شروع recalculate_with_manual_prices")
         print("🚀 شروع recalculate_with_manual_prices")
@@ -3711,6 +4647,14 @@ def recalculate_with_manual_prices(price_list_name):
         if not manual_price_map:
             print("❌ هیچ قیمت دستی وجود ندارد")
             return {"updated_count": 0, "message": "هیچ قیمت دستی‌ای تعریف نشده است"}
+        
+        # بررسی وجود items
+        if not price_list.items:
+            print("❌ هیچ آیتمی در price list وجود ندارد")
+            return {"updated_count": 0, "message": "هیچ آیتمی در price list وجود ندارد"}
+        
+        print(f"✅ تعداد آیتم‌ها: {len(price_list.items)}")
+        print(f"✅ تعداد قیمت‌های دستی: {len(manual_price_map)}")
         
         # لاگ شروع فرآیند
         frappe.logger().info(f"🔄 شروع به‌روزرسانی قیمت‌ها با {len(manual_price_map)} قیمت دستی")
@@ -3756,8 +4700,15 @@ def recalculate_with_manual_prices(price_list_name):
                 
                 # محاسبه قیمت جدید با قیمت‌های دستی
                 print(f"   🚀 شروع محاسبه هزینه جدید برای {item.item_code}...")
-                new_cost = price_list.calculate_item_cost_with_exploded_items(item.item_code)
-                cost_difference = new_cost - old_cost
+                try:
+                    new_cost = price_list.calculate_item_cost_with_exploded_items(item.item_code)
+                    cost_difference = new_cost - old_cost
+                    print(f"   ✅ محاسبه هزینه موفق: {new_cost:,.0f}")
+                except Exception as calc_error:
+                    print(f"   ❌ خطا در محاسبه هزینه: {str(calc_error)}")
+                    import traceback
+                    print(f"   🔍 جزئیات خطا: {traceback.format_exc()}")
+                    continue
                 
                 frappe.logger().info(f"   🧮 تفاوت هزینه محاسبه شده: {cost_difference:,.0f}")
                 print(f"   🧮 تفاوت هزینه محاسبه شده: {cost_difference:,.0f}")
@@ -3801,10 +4752,21 @@ def recalculate_with_manual_prices(price_list_name):
                     try:
                         # ابتدا raw_material_cost را به‌روزرسانی کن
                         item.raw_material_cost = new_cost
+                        print(f"   ✅ raw_material_cost به‌روزرسانی شد: {new_cost:,.0f}")
                         
                         # سپس قیمت نهایی را محاسبه کن
-                        new_price = price_list.calculate_final_price_for_item(item)
-                        frappe.logger().info(f"   💰 قیمت نهایی محاسبه شده: {new_price:,.0f}")
+                        print(f"   🚀 شروع محاسبه قیمت نهایی...")
+                        try:
+                            new_price = price_list.calculate_final_price_for_item(item)
+                            print(f"   ✅ قیمت نهایی محاسبه شد: {new_price:,.0f}")
+                            frappe.logger().info(f"   💰 قیمت نهایی محاسبه شده: {new_price:,.0f}")
+                        except Exception as price_calc_error:
+                            print(f"   ❌ خطا در محاسبه قیمت نهایی: {str(price_calc_error)}")
+                            # استفاده از محاسبه ساده در صورت خطا
+                            profit_margin = price_list.profit_margin or 0
+                            new_price = new_cost * (1 + profit_margin / 100)
+                            print(f"   🔄 استفاده از محاسبه ساده: {new_price:,.0f} (سود {profit_margin}%)")
+                            frappe.logger().info(f"   🔄 استفاده از محاسبه ساده به دلیل خطا: {new_price:,.0f}")
                         
                         # لاگ تفصیلی تغییرات
                         cost_change = new_cost - old_cost
@@ -3833,6 +4795,11 @@ def recalculate_with_manual_prices(price_list_name):
                         
                         # به‌روزرسانی قیمت فروش در جدول items
                         item.selling_price = new_price
+                        
+                        # ✅ اطمینان از به‌روزرسانی total_cost
+                        item.total_cost = new_cost + (item.operation_cost or 0) + (item.overhead_cost or 0)
+                        print(f"   ✅ total_cost به‌روزرسانی شد: {item.total_cost:,.0f}")
+                        
                         updated_count += 1
                         
                     except Exception as calc_error:
@@ -3856,8 +4823,16 @@ def recalculate_with_manual_prices(price_list_name):
         
         # ذخیره تغییرات
         if updated_count > 0:
+            print(f"💾 شروع ذخیره‌سازی {updated_count} آیتم...")
+            
             # اجبار به refresh کردن child table
             for item in price_list.items:
+                if hasattr(item, '_doc_before_save'):
+                    # نمایش تغییرات برای دیباگ
+                    print(f"   📝 ذخیره آیتم {item.item_code}:")
+                    print(f"      raw_material_cost: {item.raw_material_cost:,.0f}")
+                    print(f"      total_cost: {item.total_cost:,.0f}")
+                    print(f"      selling_price: {item.selling_price:,.0f}")
                 item.db_update()
             
             price_list.save()
@@ -3887,12 +4862,22 @@ def recalculate_with_manual_prices(price_list_name):
         return response
         
     except Exception as e:
-        error_msg = f"Recalc error: {str(e)}"
-        frappe.logger().error(error_msg)
+        import traceback
+        error_msg = f"خطا در اعمال قیمت‌های دستی: {str(e)}"
+        error_details = traceback.format_exc()
+        
+        frappe.logger().error(f"❌ {error_msg}")
+        frappe.logger().error(f"🔍 جزئیات خطا: {error_details}")
         print(f"❌ خطا: {error_msg}")
+        print(f"🔍 جزئیات خطا: {error_details}")
+        
+        # ارسال پیام خطای واضح‌تر
+        frappe.throw(f"خطا در اعمال قیمت‌های دستی: {str(e)}")
+        
         return {
             "success": False,
             "error": str(e),
+            "message": f"خطا در اعمال قیمت‌های دستی: {str(e)}",
             "updated_count": 0,
             "total_items": 0,
             "affected_items": 0,
@@ -3900,5 +4885,172 @@ def recalculate_with_manual_prices(price_list_name):
             "manual_prices_count": 0,
             "manual_prices": [],
             "price_changes": []
+        }
+
+    def get_automatic_monthly_fixed_costs(self):
+        """
+        استخراج خودکار هزینه‌های ثابت ماهانه از حسابداری ERPNext
+        """
+        try:
+            # دریافت شرکت از لیست قیمت
+            company = None
+            if self.price_list:
+                price_list_doc = frappe.get_doc("Price List", self.price_list)
+                # اگر شرکت در Price List تعریف نشده، از شرکت پیش‌فرض استفاده کنیم
+                company = getattr(price_list_doc, 'company', None) or frappe.defaults.get_user_default("Company")
+            
+            if not company:
+                company = frappe.defaults.get_user_default("Company")
+            
+            if not company:
+                frappe.logger().warning("شرکت برای محاسبه هزینه‌های ثابت پیدا نشد")
+                return 0
+            
+            # تاریخ شروع و پایان ماه گذشته برای محاسبه میانگین
+            from datetime import datetime, timedelta
+            from dateutil.relativedelta import relativedelta
+            
+            today = datetime.now().date()
+            # ماه گذشته
+            last_month_start = (today.replace(day=1) - relativedelta(months=1))
+            last_month_end = today.replace(day=1) - timedelta(days=1)
+            
+            # حساب‌های هزینه ثابت (بر اساس نام‌گذاری معمول ایرانی)
+            fixed_cost_accounts = [
+                # هزینه‌های اجاره
+                "اجاره", "rent", "اجاره بها", "اجاره املاک", "کرایه",
+                # هزینه‌های حقوق و دستمزد
+                "حقوق", "salary", "دستمزد", "مزایا", "بیمه کارکنان", "عیدی", "پاداش",
+                # هزینه‌های بیمه
+                "بیمه", "insurance", "بیمه آتش سوزی", "بیمه مسئولیت",
+                # هزینه‌های استهلاک
+                "استهلاک", "depreciation", "مستهلکات",
+                # هزینه‌های اداری ثابت
+                "تلفن", "اینترنت", "آب", "گاز", "برق اداری", "نگهبانی", "نظافت",
+                # هزینه‌های مالی ثابت
+                "کارمزد بانک", "سود تسهیلات", "هزینه مالی"
+            ]
+            
+            # ساخت شرط WHERE برای جستجو در نام حساب‌ها
+            account_conditions = []
+            for keyword in fixed_cost_accounts:
+                account_conditions.append(f"acc.account_name LIKE '%{keyword}%'")
+            
+            account_where_clause = " OR ".join(account_conditions)
+            
+            # Query برای دریافت هزینه‌های ثابت از GL Entry
+            query = f"""
+                SELECT 
+                    SUM(ABS(gle.debit - gle.credit)) as total_fixed_costs
+                FROM `tabGL Entry` gle
+                INNER JOIN `tabAccount` acc ON gle.account = acc.name
+                WHERE 
+                    gle.company = %s
+                    AND gle.posting_date BETWEEN %s AND %s
+                    AND acc.account_type = 'Expense'
+                    AND ({account_where_clause})
+                    AND gle.is_cancelled = 0
+            """
+            
+            result = frappe.db.sql(query, (company, last_month_start, last_month_end), as_dict=True)
+            
+            monthly_fixed_costs = 0
+            if result and result[0].get('total_fixed_costs'):
+                monthly_fixed_costs = float(result[0]['total_fixed_costs'])
+            
+            # اگر داده‌ای پیدا نشد، از میانگین 3 ماه گذشته استفاده کنیم
+            if monthly_fixed_costs == 0:
+                three_months_ago = today.replace(day=1) - relativedelta(months=3)
+                
+                query_3months = f"""
+                    SELECT 
+                        AVG(monthly_costs.total) as avg_fixed_costs
+                    FROM (
+                        SELECT 
+                            YEAR(gle.posting_date) as year,
+                            MONTH(gle.posting_date) as month,
+                            SUM(ABS(gle.debit - gle.credit)) as total
+                        FROM `tabGL Entry` gle
+                        INNER JOIN `tabAccount` acc ON gle.account = acc.name
+                        WHERE 
+                            gle.company = %s
+                            AND gle.posting_date >= %s
+                            AND acc.account_type = 'Expense'
+                            AND ({account_where_clause})
+                            AND gle.is_cancelled = 0
+                        GROUP BY YEAR(gle.posting_date), MONTH(gle.posting_date)
+                    ) as monthly_costs
+                """
+                
+                result_3months = frappe.db.sql(query_3months, (company, three_months_ago), as_dict=True)
+                
+                if result_3months and result_3months[0].get('avg_fixed_costs'):
+                    monthly_fixed_costs = float(result_3months[0]['avg_fixed_costs'])
+            
+            # اگر هنوز داده‌ای نیست، از تخمین بر اساس کل هزینه‌ها استفاده کنیم
+            if monthly_fixed_costs == 0:
+                total_expenses_query = """
+                    SELECT 
+                        SUM(ABS(gle.debit - gle.credit)) as total_expenses
+                    FROM `tabGL Entry` gle
+                    INNER JOIN `tabAccount` acc ON gle.account = acc.name
+                    WHERE 
+                        gle.company = %s
+                        AND gle.posting_date BETWEEN %s AND %s
+                        AND acc.account_type = 'Expense'
+                        AND gle.is_cancelled = 0
+                """
+                
+                total_result = frappe.db.sql(total_expenses_query, (company, last_month_start, last_month_end), as_dict=True)
+                
+                if total_result and total_result[0].get('total_expenses'):
+                    total_expenses = float(total_result[0]['total_expenses'])
+                    # تخمین 40% از کل هزینه‌ها به عنوان هزینه ثابت
+                    monthly_fixed_costs = total_expenses * 0.4
+            
+            frappe.logger().info(f"هزینه‌های ثابت ماهانه محاسبه شده: {monthly_fixed_costs:,.0f} ریال")
+            return monthly_fixed_costs
+            
+        except Exception as e:
+            frappe.logger().error(f"خطا در محاسبه هزینه‌های ثابت خودکار: {str(e)}")
+            import traceback
+            frappe.logger().error(f"جزئیات خطا: {traceback.format_exc()}")
+            return 0
+
+@frappe.whitelist()
+def get_automatic_fixed_costs(doctype, name):
+    """
+    متد static برای دریافت هزینه‌های ثابت خودکار از تنظیمات
+    """
+    try:
+        # ابتدا سعی می‌کنیم از تنظیمات Fixed Costs استفاده کنیم
+        try:
+            from pricing.pricing.doctype.fixed_costs_settings.fixed_costs_settings import get_current_fixed_costs
+            fixed_costs = get_current_fixed_costs()
+            if fixed_costs and fixed_costs > 0:
+                return fixed_costs
+        except:
+            pass
+        
+        # اگر تنظیمات وجود نداشت، از روش قدیمی استفاده می‌کنیم
+        doc = frappe.get_doc(doctype, name)
+        return doc.get_automatic_monthly_fixed_costs()
+    except Exception as e:
+        frappe.logger().error(f"خطا در دریافت هزینه‌های ثابت خودکار: {str(e)}")
+        return 0
+
+@frappe.whitelist()
+def get_items_bom_status(doctype, name):
+    """
+    متد static برای بررسی وضعیت BOM فعال برای تمام محصولات در لیست
+    """
+    try:
+        doc = frappe.get_doc(doctype, name)
+        return doc.get_items_bom_status()
+    except Exception as e:
+        frappe.logger().error(f"خطا در دریافت وضعیت BOM: {str(e)}")
+        return {
+            "items_without_bom": [],
+            "items_with_unsubmitted_bom": []
         }
 

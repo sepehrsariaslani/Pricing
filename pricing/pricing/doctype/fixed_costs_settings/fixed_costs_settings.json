@@ -1,0 +1,132 @@
+{
+    "actions": [],
+    "allow_rename": 1,
+    "creation": "2024-03-19 10:00:00.000000",
+    "doctype": "DocType",
+    "editable_grid": 1,
+    "engine": "InnoDB",
+    "field_order": [
+        "fixed_costs_accounts_section",
+        "fixed_costs_accounts",
+        "calculation_settings_section",
+        "calculation_method",
+        "months_for_average",
+        "calculation_column_break",
+        "auto_update_frequency",
+        "last_calculation_date",
+        "results_section",
+        "current_monthly_fixed_costs",
+        "last_updated_by"
+    ],
+    "fields": [
+        {
+            "fieldname": "fixed_costs_accounts_section",
+            "fieldtype": "Section Break",
+            "label": "حساب‌های هزینه ثابت"
+        },
+        {
+            "fieldname": "fixed_costs_accounts",
+            "fieldtype": "Table",
+            "label": "حساب‌های هزینه ثابت",
+            "options": "Fixed Cost Account",
+            "description": "حساب‌هایی که برای محاسبه هزینه‌های ثابت ماهانه استفاده می‌شوند"
+        },
+        {
+            "fieldname": "calculation_settings_section",
+            "fieldtype": "Section Break",
+            "label": "تنظیمات محاسبه"
+        },
+        {
+            "fieldname": "calculation_method",
+            "fieldtype": "Select",
+            "label": "روش محاسبه",
+            "options": "میانگین ماه گذشته\nمیانگین چند ماه گذشته\nمجموع ماه جاری",
+            "default": "میانگین چند ماه گذشته",
+            "reqd": 1
+        },
+        {
+            "fieldname": "months_for_average",
+            "fieldtype": "Int",
+            "label": "تعداد ماه برای میانگین",
+            "default": 3,
+            "depends_on": "eval:doc.calculation_method == 'میانگین چند ماه گذشته'"
+        },
+        {
+            "fieldname": "calculation_column_break",
+            "fieldtype": "Column Break"
+        },
+        {
+            "fieldname": "auto_update_frequency",
+            "fieldtype": "Select",
+            "label": "فرکانس به‌روزرسانی خودکار",
+            "options": "دستی\nروزانه\nهفتگی\nماهانه",
+            "default": "ماهانه"
+        },
+        {
+            "fieldname": "last_calculation_date",
+            "fieldtype": "Datetime",
+            "label": "آخرین محاسبه",
+            "read_only": 1
+        },
+        {
+            "fieldname": "results_section",
+            "fieldtype": "Section Break",
+            "label": "نتایج محاسبه"
+        },
+        {
+            "fieldname": "current_monthly_fixed_costs",
+            "fieldtype": "Currency",
+            "label": "هزینه‌های ثابت ماهانه فعلی (ریال)",
+            "read_only": 1,
+            "description": "آخرین مقدار محاسبه شده هزینه‌های ثابت ماهانه"
+        },
+        {
+            "fieldname": "last_updated_by",
+            "fieldtype": "Link",
+            "label": "آخرین به‌روزرسانی توسط",
+            "options": "User",
+            "read_only": 1
+        }
+    ],
+    "index_web_pages_for_search": 1,
+    "is_submittable": 0,
+    "issingle": 1,
+    "istable": 0,
+    "links": [],
+    "modified": "2024-03-19 10:00:00.000000",
+    "modified_by": "Administrator",
+    "module": "Pricing",
+    "name": "Fixed Costs Settings",
+    "naming_rule": "By fieldname",
+    "owner": "Administrator",
+    "permissions": [
+        {
+            "create": 1,
+            "delete": 1,
+            "email": 1,
+            "export": 1,
+            "print": 1,
+            "read": 1,
+            "report": 1,
+            "role": "System Manager",
+            "share": 1,
+            "write": 1
+        },
+        {
+            "create": 1,
+            "delete": 1,
+            "email": 1,
+            "export": 1,
+            "print": 1,
+            "read": 1,
+            "report": 1,
+            "role": "Accounts Manager",
+            "share": 1,
+            "write": 1
+        }
+    ],
+    "sort_field": "modified",
+    "sort_order": "DESC",
+    "states": [],
+    "track_changes": 1
+}

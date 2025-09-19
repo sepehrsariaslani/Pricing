@@ -1,0 +1,29 @@
+{
+ "content": null,
+ "creation": "2025-09-19 12:22:54.000000",
+ "docstatus": 0,
+ "doctype": "Page",
+ "idx": 0,
+ "modified": "2025-09-19 12:22:54.000000",
+ "modified_by": "Administrator",
+ "module": "Pricing",
+ "name": "jobcards",
+ "owner": "Administrator",
+ "page_name": "jobcards",
+ "roles": [
+  {
+   "role": "کارمند تولید"
+  },
+  {
+   "role": "Employee"
+  },
+  {
+   "role": "سرپرست تولید"
+  }
+ ],
+ "script": null,
+ "standard": "Yes",
+ "style": null,
+ "system_page": 1,
+ "title": "کارت کارها"
+}

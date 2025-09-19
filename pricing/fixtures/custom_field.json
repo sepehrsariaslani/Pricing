@@ -241,5 +241,36 @@
   "fieldtype": "Currency",
   "label": "Total Interest",
   "insert_after": "total_installment_amount"
+ },
+ {
+  "doctype": "Custom Field",
+  "name": "Manufacturing Settings-employee_wages_section",
+  "dt": "Manufacturing Settings",
+  "fieldname": "employee_wages_section",
+  "fieldtype": "Section Break",
+  "label": "تنظیمات حقوق و دستمزد کارمندان",
+  "insert_after": "set_op_cost_and_scrap_from_sub_assemblies"
+ },
+ {
+  "doctype": "Custom Field",
+  "name": "Manufacturing Settings-employee_wages_payable_account",
+  "dt": "Manufacturing Settings",
+  "fieldname": "employee_wages_payable_account",
+  "fieldtype": "Link",
+  "label": "حساب حقوق و دستمزد پرداختنی",
+  "options": "Account",
+  "description": "حساب مورد استفاده برای ثبت بدهی به کارمندان در GL Entry",
+  "insert_after": "employee_wages_section"
+ },
+ {
+  "doctype": "Custom Field",
+  "name": "Manufacturing Settings-production_wages_expense_account",
+  "dt": "Manufacturing Settings",
+  "fieldname": "production_wages_expense_account",
+  "fieldtype": "Link",
+  "label": "حساب هزینه دستمزد تولید",
+  "options": "Account",
+  "description": "حساب هزینه مورد استفاده برای ثبت هزینه دستمزد تولید",
+  "insert_after": "employee_wages_payable_account"
  }
 ]
