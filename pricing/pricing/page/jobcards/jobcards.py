@@ -1267,12 +1267,46 @@ def get_employee_accounting_data(employee=None):
         LIMIT 20
     """, (employee, payable_account, '%حقوق و دستمزد پرداختنی%'), as_dict=True)
     
+    # آمار تفصیلی برای کارگر
+    stats = {
+        "total_job_cards": len(recent_earnings),
+        "avg_earning_per_job": total_earnings / len(recent_earnings) if recent_earnings else 0,
+        "total_payments": len(recent_payments),
+        "last_payment_date": recent_payments[0]["date"] if recent_payments else None,
+        "last_earning_date": recent_earnings[0]["date"] if recent_earnings else None
+    }
+    
+    # پیام‌های توضیحی برای کارگر
+    messages = []
+    
+    if balance > 0:
+        messages.append(f"💰 شما {balance:,.0f} ریال طلب دارید که هنوز پرداخت نشده است.")
+    elif balance < 0:
+        messages.append(f"⚠️ شما {abs(balance):,.0f} ریال بدهی دارید.")
+    else:
+        messages.append("✅ حساب شما تسویه است.")
+    
+    if recent_earnings:
+        messages.append(f"📊 در {len(recent_earnings)} کار اخیر، مجموع {total_earnings:,.0f} ریال درآمد کسب کرده‌اید.")
+    
+    if recent_payments:
+        messages.append(f"💳 آخرین پرداخت در تاریخ {recent_payments[0]['date']} به مبلغ {recent_payments[0]['amount']:,.0f} ریال بوده است.")
+    
     return {
         "total_earnings": total_earnings,
         "total_paid": total_paid,
         "balance": balance,
         "recent_earnings": recent_earnings,
-        "recent_payments": recent_payments
+        "recent_payments": recent_payments,
+        "stats": stats,
+        "messages": messages,
+        "employee_name": employee,
+        "summary": {
+            "total_earnings_formatted": f"{total_earnings:,.0f} ریال",
+            "total_paid_formatted": f"{total_paid:,.0f} ریال", 
+            "balance_formatted": f"{balance:,.0f} ریال",
+            "balance_status": "طلب" if balance > 0 else "بدهی" if balance < 0 else "تسویه"
+        }
     }
 
 def get_manufacturing_accounts():

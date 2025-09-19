@@ -708,25 +708,48 @@ async function loadAccountingDashboard() {
 function renderAccountingDashboard(data) {
     let html = `
         <div class="accounting-dashboard" style="padding: 20px;">
+            <!-- پیام‌های توضیحی -->
+            ${data.messages && data.messages.length > 0 ? `
+            <div class="row mb-4">
+                <div class="col-12">
+                    <div class="alert alert-info border-0 shadow-sm">
+                        <div class="d-flex align-items-center mb-2">
+                            <i class="fa fa-info-circle me-2"></i>
+                            <h6 class="mb-0">خلاصه وضعیت حساب شما:</h6>
+                        </div>
+                        ${data.messages.map(msg => `<p class="mb-1">${msg}</p>`).join('')}
+                    </div>
+                </div>
+            </div>
+            ` : ''}
+            
             <!-- خلاصه حساب -->
             <div class="row mb-4">
                 <div class="col-12">
                     <div class="card border-0 shadow-lg" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
                         <div class="card-body text-white text-center py-4">
                             <div class="row">
-                                <div class="col-md-4">
+                                <div class="col-md-3">
                                     <h3 class="mb-1">${formatRialRounded(data.total_earnings || 0)}</h3>
                                     <p class="mb-0 opacity-75">کل درآمد</p>
+                                    <small class="opacity-50">${data.stats?.total_job_cards || 0} کار</small>
                                 </div>
-                                <div class="col-md-4">
+                                <div class="col-md-3">
                                     <h3 class="mb-1">${formatRialRounded(data.total_paid || 0)}</h3>
                                     <p class="mb-0 opacity-75">پرداخت شده</p>
+                                    <small class="opacity-50">${data.stats?.total_payments || 0} پرداخت</small>
                                 </div>
-                                <div class="col-md-4">
+                                <div class="col-md-3">
                                     <h3 class="mb-1" style="color: ${(data.balance || 0) >= 0 ? '#90EE90' : '#FFB6C1'};">
                                         ${formatRialRounded(data.balance || 0)}
                                     </h3>
-                                    <p class="mb-0 opacity-75">${(data.balance || 0) >= 0 ? 'طلب شما' : 'بدهی شما'}</p>
+                                    <p class="mb-0 opacity-75">${data.summary?.balance_status || 'نامشخص'}</p>
+                                    <small class="opacity-50">وضعیت حساب</small>
+                                </div>
+                                <div class="col-md-3">
+                                    <h3 class="mb-1">${formatRialRounded(data.stats?.avg_earning_per_job || 0)}</h3>
+                                    <p class="mb-0 opacity-75">متوسط درآمد</p>
+                                    <small class="opacity-50">هر کار</small>
                                 </div>
                             </div>
                         </div>
@@ -785,13 +808,30 @@ function renderRecentEarnings(earnings) {
         if (index < 10) { // فقط ۱۰ مورد اخیر
             html += `
                 <div class="list-group-item border-0 px-0">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div>
-                            <h6 class="mb-1">${earning.job_card || 'نامشخص'}</h6>
-                            <small class="text-muted">${earning.date || ''}</small>
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div class="flex-grow-1">
+                            <div class="d-flex align-items-center mb-1">
+                                <i class="fa fa-briefcase me-2 text-primary"></i>
+                                <h6 class="mb-0">${earning.job_card || 'نامشخص'}</h6>
+                            </div>
+                            <div class="mb-1">
+                                <small class="text-muted">
+                                    <i class="fa fa-calendar me-1"></i>
+                                    ${earning.date ? new Date(earning.date).toLocaleDateString('fa-IR') : 'نامشخص'}
+                                </small>
+                            </div>
+                            <div>
+                                <small class="text-muted">
+                                    <i class="fa fa-cubes me-1"></i>
+                                    تعداد: ${earning.quantity || 0} عدد
+                                </small>
+                            </div>
                         </div>
                         <div class="text-success font-weight-bold">
-                            +${formatRialRounded(earning.amount || 0)}
+                            <div class="text-end">
+                                <div style="font-size: 1.1em;">+${formatRialRounded(earning.amount || 0)}</div>
+                                <small class="text-muted">درآمد</small>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -822,13 +862,30 @@ function renderRecentPayments(payments) {
         if (index < 10) { // فقط ۱۰ مورد اخیر
             html += `
                 <div class="list-group-item border-0 px-0">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div>
-                            <h6 class="mb-1">${payment.reference || 'پرداخت'}</h6>
-                            <small class="text-muted">${payment.date || ''}</small>
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div class="flex-grow-1">
+                            <div class="d-flex align-items-center mb-1">
+                                <i class="fa fa-credit-card me-2 text-primary"></i>
+                                <h6 class="mb-0">${payment.reference || 'پرداخت نقدی'}</h6>
+                            </div>
+                            <div class="mb-1">
+                                <small class="text-muted">
+                                    <i class="fa fa-calendar me-1"></i>
+                                    ${payment.date ? new Date(payment.date).toLocaleDateString('fa-IR') : 'نامشخص'}
+                                </small>
+                            </div>
+                            <div>
+                                <small class="text-success">
+                                    <i class="fa fa-check-circle me-1"></i>
+                                    پرداخت شده
+                                </small>
+                            </div>
                         </div>
                         <div class="text-primary font-weight-bold">
-                            -${formatRialRounded(payment.amount || 0)}
+                            <div class="text-end">
+                                <div style="font-size: 1.1em;">-${formatRialRounded(payment.amount || 0)}</div>
+                                <small class="text-muted">پرداخت</small>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -3135,10 +3192,18 @@ globalJobInfoCache.delete(jobCardName);
                             // رندر مجدد فقط این کارت کار
                             await refreshSingleJobCard(jobCardName);
                             
+                            // به‌روزرسانی دکمه‌های کارت کار
+                            await refreshJobCardButtons(jobCardName);
+                            
                             // به‌روزرسانی داشبورد بهره‌وری اگر در آن تب هستیم
                             if ($('#productivity-dashboard').is(':visible')) {
                                 loadProductivityDashboard();
                             }
+                            
+                            // رفرش کامل صفحه برای اطمینان از نمایش دکمه‌های جدید
+                            setTimeout(() => {
+                                loadData();
+                            }, 1000);
                         } else if (r.message && r.message.status === 'dependency_error') {
                             // اگر سرور هم dependency error برگردوند
                             frappe.msgprint({
