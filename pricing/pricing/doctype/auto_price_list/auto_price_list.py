@@ -774,17 +774,26 @@ class AutoPriceList(Document):
                 
                 updated_items += 1
             
-            # ذخیره تغییرات
+            # ذخیره تغییرات با مدیریت بهتر تراکنش
             if updated_items > 0:
-                for item in self.items:
-                    item.db_update()
-                
-                self.save()
-                frappe.db.commit()
-                
-                message = f"🎉 بهای تمام شده برای {updated_items} آیتم محاسبه شد"
-                print(message)
-                frappe.logger().info(message)
+                try:
+                    # به‌روزرسانی child table items
+                    for item in self.items:
+                        if hasattr(item, 'db_update'):
+                            item.db_update()
+                    
+                    # ذخیره document اصلی بدون commit فوری
+                    self.save(ignore_permissions=True)
+                    
+                    message = f"🎉 بهای تمام شده برای {updated_items} آیتم محاسبه شد"
+                    print(message)
+                    frappe.logger().info(message)
+                    
+                except Exception as save_error:
+                    frappe.logger().error(f"خطا در ذخیره: {str(save_error)}")
+                    # در صورت خطا، rollback کن
+                    frappe.db.rollback()
+                    raise save_error
                 
                 return {
                     "success": True,

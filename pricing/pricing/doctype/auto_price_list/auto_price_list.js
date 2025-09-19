@@ -271,11 +271,21 @@ frappe.ui.form.on('Auto Price List Item', {
 function load_and_add_buttons(frm) {
     console.log("Loading button configuration...");
     
-    // Clear existing custom buttons
-    frm.clear_custom_buttons();
-    
-    // Add all essential buttons directly
-    add_all_buttons(frm);
+    try {
+        // Clear existing custom buttons
+        frm.clear_custom_buttons();
+        
+        // Add all essential buttons directly
+        add_all_buttons(frm);
+        
+        console.log("✅ Buttons loaded successfully");
+    } catch (error) {
+        console.error("❌ Error loading buttons:", error);
+        frappe.show_alert({
+            message: 'خطا در بارگذاری دکمه‌ها: ' + error.message,
+            indicator: 'red'
+        });
+    }
 }
 
 function add_all_buttons(frm) {
@@ -298,12 +308,87 @@ function add_all_buttons(frm) {
                 indicator: 'green'
             });
         }).catch((error) => {
+            console.error('Error in calculate_full_costing:', error);
             frappe.show_alert({
-                message: __('❌ خطا در محاسبه قیمت‌ها: ') + error.message,
+                message: __('❌ خطا در محاسبه قیمت‌ها: ') + (error.message || 'خطای نامشخص'),
                 indicator: 'red'
             });
         });
-    }, __('عملیات اصلی'));
+    }, __('🔄 محاسبه قیمت‌ها'));
+    
+    // Add missing render_quality_metrics function
+    if (!window.render_quality_metrics) {
+        window.render_quality_metrics = function() {
+            console.log('render_quality_metrics called - placeholder function');
+            return;
+        };
+    }
+    
+    // Add improved render_simple_pie_chart function
+    if (!window.render_simple_pie_chart) {
+        window.render_simple_pie_chart = function(canvas_id, data, title) {
+            try {
+                const canvas = document.getElementById(canvas_id);
+                if (!canvas) {
+                    console.warn(`Canvas with id ${canvas_id} not found`);
+                    return;
+                }
+                
+                // Validate and filter data
+                if (!data || data.length === 0) {
+                    console.warn(`No data provided for chart ${canvas_id}`);
+                    return;
+                }
+                
+                const validData = data.filter(item => item.value > 0);
+                if (validData.length === 0) {
+                    console.warn(`No valid data (positive values) for chart ${canvas_id}`);
+                    return;
+                }
+                
+                const ctx = canvas.getContext('2d');
+                const centerX = canvas.width / 2;
+                const centerY = canvas.height / 2;
+                const radius = Math.max(10, Math.min(centerX, centerY) - 40);
+                
+                // Clear canvas
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                
+                // Calculate total
+                const total = validData.reduce((sum, item) => sum + item.value, 0);
+                
+                // Draw pie slices
+                let currentAngle = -Math.PI / 2;
+                const colors = ['#3498db', '#e74c3c', '#f39c12', '#9b59b6', '#1abc9c', '#34495e', '#e67e22', '#95a5a6'];
+                
+                validData.forEach((item, index) => {
+                    const sliceAngle = (item.value / total) * 2 * Math.PI;
+                    
+                    ctx.beginPath();
+                    ctx.moveTo(centerX, centerY);
+                    ctx.arc(centerX, centerY, radius, currentAngle, currentAngle + sliceAngle);
+                    ctx.closePath();
+                    ctx.fillStyle = colors[index % colors.length];
+                    ctx.fill();
+                    
+                    currentAngle += sliceAngle;
+                });
+                
+                // Draw title
+                if (title) {
+                    ctx.fillStyle = '#2c3e50';
+                    ctx.font = 'bold 16px Arial';
+                    ctx.textAlign = 'center';
+                    ctx.fillText(title, centerX, 30);
+                }
+                
+                console.log(`✅ Chart ${canvas_id} rendered successfully`);
+                
+            } catch (error) {
+                console.error(`❌ Error rendering chart ${canvas_id}:`, error);
+            }
+        };
+    }
     
     frm.add_custom_button(__('نمایش داشبورد قیمت‌گذاری'), function() {
         show_pricing_dashboard(frm);
@@ -2186,22 +2271,31 @@ function render_simple_bar_chart(container_id, data, title) {
 }
 
 // Simple dashboard charts without external dependencies
-function render_dashboard_charts_simple(frm) {
-    console.log("render_dashboard_charts_simple called");
-    if (!frm.doc.items || frm.doc.items.length === 0) return;
+function render_cost_breakdown_chart(frm) {
+    if (!frm.doc.items || frm.doc.items.length === 0) {
+        return;
+    }
+
+    const items = frm.doc.items;
     
-    // Prepare cost breakdown data
+    // محاسبه مقادیر با validation برای جلوگیری از مقادیر منفی
+    const total_raw_material = Math.max(0, items.reduce((sum, item) => sum + (item.raw_material_cost || 0), 0));
+    const total_electricity = Math.max(0, items.reduce((sum, item) => sum + (item.electricity_cost || 0), 0));
+    const total_consumable = Math.max(0, items.reduce((sum, item) => sum + (item.consumable_cost || 0), 0));
+    const total_rent = Math.max(0, items.reduce((sum, item) => sum + (item.rent_cost || 0), 0));
+    const total_labor = Math.max(0, items.reduce((sum, item) => sum + (item.labor_cost || 0), 0));
+    const total_operation = Math.max(0, items.reduce((sum, item) => sum + (item.operation_cost || 0), 0));
+    const total_overhead = Math.max(0, items.reduce((sum, item) => sum + (item.overhead_cost || 0), 0));
+
     let cost_data = [];
-    let total_raw_material = frm.doc.items.reduce((sum, item) => sum + (item.raw_material_cost || 0), 0);
-    let total_operation = frm.doc.items.reduce((sum, item) => sum + (item.operation_cost || 0), 0);
-    let total_overhead = frm.doc.items.reduce((sum, item) => sum + (item.overhead_cost || 0), 0);
-    let total_labor = frm.doc.items.reduce((sum, item) => sum + (item.labor_cost || 0), 0);
-    
     if (total_raw_material > 0) cost_data.push({ label: 'مواد اولیه', value: total_raw_material });
+    if (total_electricity > 0) cost_data.push({ label: 'برق', value: total_electricity });
+    if (total_consumable > 0) cost_data.push({ label: 'مصرفی', value: total_consumable });
+    if (total_rent > 0) cost_data.push({ label: 'اجاره', value: total_rent });
+    if (total_labor > 0) cost_data.push({ label: 'نیروی کار', value: total_labor });
     if (total_operation > 0) cost_data.push({ label: 'عملیات', value: total_operation });
     if (total_overhead > 0) cost_data.push({ label: 'سربار', value: total_overhead });
-    if (total_labor > 0) cost_data.push({ label: 'نیروی کار', value: total_labor });
-    
+
     // Render cost breakdown pie chart
     if (cost_data.length > 0) {
         render_simple_pie_chart('cost_breakdown_chart', cost_data, 'توزیع هزینه‌ها');
@@ -5423,6 +5517,7 @@ function render_waterfall_chartjs(costs, selling_price) {
         window.waterfallChart.destroy();
     }
     
+    // Waterfall chart implementation
     const data_points = [
         { label: 'مواد اولیه', value: costs.material, color: '#3498db' },
         { label: 'نیروی کار', value: costs.labor, color: '#e74c3c' },
@@ -5436,12 +5531,14 @@ function render_waterfall_chartjs(costs, selling_price) {
     const chart_data = [];
     
     data_points.forEach(point => {
-        chart_data.push({
-            x: point.label,
-            y: [cumulative, cumulative + point.value],
-            backgroundColor: point.color
-        });
-        cumulative += point.value;
+        if (point.value > 0) {
+            chart_data.push({
+                x: point.label,
+                y: [cumulative, cumulative + point.value],
+                backgroundColor: point.color
+            });
+            cumulative += point.value;
+        }
     });
     
     // اضافه کردن قیمت فروش
