@@ -1,0 +1,51 @@
+{
+    "actions": [],
+    "allow_rename": 1,
+    "creation": "2024-03-19 10:00:00.000000",
+    "doctype": "DocType",
+    "editable_grid": 1,
+    "engine": "InnoDB",
+    "field_order": [
+        "customer_tier",
+        "discount_percentage",
+        "description"
+    ],
+    "fields": [
+        {
+            "fieldname": "customer_tier",
+            "fieldtype": "Select",
+            "in_list_view": 1,
+            "label": "سطح مشتری",
+            "options": "VIP\nعمده‌فروش\nعادی\nجدید",
+            "reqd": 1,
+            "width": "40%"
+        },
+        {
+            "fieldname": "discount_percentage",
+            "fieldtype": "Percent",
+            "in_list_view": 1,
+            "label": "درصد تخفیف",
+            "reqd": 1,
+            "width": "30%"
+        },
+        {
+            "fieldname": "description",
+            "fieldtype": "Data",
+            "in_list_view": 1,
+            "label": "توضیحات",
+            "width": "30%"
+        }
+    ],
+    "index_web_pages_for_search": 1,
+    "istable": 1,
+    "links": [],
+    "modified": "2024-03-19 10:00:00.000000",
+    "modified_by": "Administrator",
+    "module": "Pricing",
+    "name": "Customer Tier Discount",
+    "owner": "Administrator",
+    "permissions": [],
+    "sort_field": "modified",
+    "sort_order": "DESC",
+    "states": []
+}

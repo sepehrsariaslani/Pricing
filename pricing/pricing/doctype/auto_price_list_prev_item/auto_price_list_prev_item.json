@@ -1,0 +1,70 @@
+{
+  "actions": [],
+  "allow_rename": 1,
+  "creation": "2024-03-19 10:00:00.000000",
+  "doctype": "DocType",
+  "editable_grid": 1,
+  "engine": "InnoDB",
+  "field_order": [
+    "item_code",
+    "prev_price",
+    "increase_percent",
+    "rounding_amount",
+    "new_price",
+    "include"
+  ],
+  "fields": [
+    {
+      "fieldname": "item_code",
+      "fieldtype": "Link",
+      "in_list_view": 1,
+      "label": "کد کالا",
+      "options": "Item",
+      "reqd": 1
+    },
+    {
+      "fieldname": "prev_price",
+      "fieldtype": "Currency",
+      "in_list_view": 1,
+      "label": "قیمت قبلی",
+      "read_only": 1
+    },
+    {
+      "fieldname": "increase_percent",
+      "fieldtype": "Percent",
+      "label": "افزایش (درصد)",
+      "default": "0"
+    },
+    {
+      "fieldname": "rounding_amount",
+      "fieldtype": "Currency",
+      "label": "رند کردن"
+    },
+    {
+      "fieldname": "new_price",
+      "fieldtype": "Currency",
+      "in_list_view": 1,
+      "label": "قیمت جدید"
+    },
+    {
+      "fieldname": "include",
+      "fieldtype": "Check",
+      "in_list_view": 1,
+      "label": "شامل شود",
+      "default": 1
+    }
+  ],
+  "index_web_pages_for_search": 1,
+  "istable": 1,
+  "links": [],
+  "modified": "2024-12-30 10:00:00.000000",
+  "modified_by": "Administrator",
+  "module": "Pricing",
+  "name": "Auto Price List Prev Item",
+  "owner": "Administrator",
+  "permissions": [],
+  "sort_field": "modified",
+  "sort_order": "DESC",
+  "states": [],
+  "track_changes": 1
+}

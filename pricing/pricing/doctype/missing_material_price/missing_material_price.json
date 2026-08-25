@@ -1,0 +1,109 @@
+{
+    "actions": [],
+    "allow_rename": 1,
+    "creation": "2024-03-19 10:00:00.000000",
+    "doctype": "DocType",
+    "editable_grid": 1,
+    "engine": "InnoDB",
+    "field_order": [
+        "item_code",
+        "item_name",
+        "current_price",
+        "suggested_price",
+        "manual_price",
+        "uom",
+        "bom_usage_count",
+        "affected_items",
+        "price_source",
+        "notes"
+    ],
+    "fields": [
+        {
+            "fieldname": "item_code",
+            "fieldtype": "Link",
+            "in_list_view": 1,
+            "label": "کد ماده اولیه",
+            "options": "Item",
+            "reqd": 1,
+            "width": "150px"
+        },
+        {
+            "fieldname": "item_name",
+            "fieldtype": "Data",
+            "label": "نام ماده اولیه",
+            "read_only": 1,
+            "fetch_from": "item_code.item_name",
+            "in_list_view": 1
+        },
+        {
+            "fieldname": "current_price",
+            "fieldtype": "Currency",
+            "label": "قیمت فعلی",
+            "read_only": 1,
+            "description": "قیمت فعلی از سیستم (اگر وجود داشته باشد)"
+        },
+        {
+            "fieldname": "suggested_price",
+            "fieldtype": "Currency",
+            "label": "قیمت پیشنهادی",
+            "read_only": 1,
+            "description": "قیمت پیشنهادی بر اساس تحلیل سیستم"
+        },
+        {
+            "fieldname": "manual_price",
+            "fieldtype": "Currency",
+            "in_list_view": 1,
+            "label": "قیمت دستی",
+            "reqd": 1,
+            "description": "قیمت دستی که وارد می‌کنید"
+        },
+        {
+            "fieldname": "uom",
+            "fieldtype": "Link",
+            "label": "واحد اندازه‌گیری",
+            "options": "UOM",
+            "read_only": 1,
+            "fetch_from": "item_code.stock_uom"
+        },
+        {
+            "fieldname": "bom_usage_count",
+            "fieldtype": "Int",
+            "label": "تعداد BOM استفاده‌کننده",
+            "read_only": 1,
+            "description": "تعداد BOMهایی که از این ماده استفاده می‌کنند"
+        },
+        {
+            "fieldname": "affected_items",
+            "fieldtype": "Small Text",
+            "label": "محصولات تأثیرپذیر",
+            "read_only": 1,
+            "description": "لیست محصولاتی که از این ماده در BOM استفاده می‌کنند"
+        },
+        {
+            "fieldname": "price_source",
+            "fieldtype": "Data",
+            "label": "منبع قیمت",
+            "read_only": 1,
+            "description": "منبع قیمت فعلی یا دلیل عدم وجود قیمت"
+        },
+        {
+            "fieldname": "notes",
+            "fieldtype": "Small Text",
+            "label": "یادداشت‌ها",
+            "description": "توضیحات اضافی در مورد این ماده اولیه"
+        }
+    ],
+    "index_web_pages_for_search": 1,
+    "istable": 1,
+    "links": [],
+    "modified": "2024-03-19 10:00:00.000000",
+    "modified_by": "Administrator",
+    "module": "Pricing",
+    "name": "Missing Material Price",
+    "owner": "Administrator",
+    "permissions": [],
+    "sort_field": "modified",
+    "sort_order": "DESC",
+    "states": [],
+    "track_changes": 1
+}

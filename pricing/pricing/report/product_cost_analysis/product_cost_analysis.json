@@ -1,0 +1,54 @@
+{
+    "actions": [],
+    "creation": "2024-03-21 10:00:00.000000",
+    "doctype": "Report",
+    "filters": [
+        {
+            "fieldname": "from_date",
+            "fieldtype": "Date",
+            "label": "From Date",
+            "mandatory_depends_on": "eval:!filters.to_date",
+            "wildcard_filter": 0
+        },
+        {
+            "fieldname": "to_date",
+            "fieldtype": "Date",
+            "label": "To Date",
+            "mandatory_depends_on": "eval:!filters.from_date",
+            "wildcard_filter": 0
+        },
+        {
+            "fieldname": "item_code",
+            "fieldtype": "Link",
+            "label": "Item",
+            "options": "Item",
+            "wildcard_filter": 0
+        },
+        {
+            "fieldname": "price_list",
+            "fieldtype": "Link",
+            "label": "Price List",
+            "options": "Auto Price List",
+            "wildcard_filter": 0
+        }
+    ],
+    "has_permissions": 0,
+    "is_standard": "No",
+    "module": "Auto Pricing",
+    "name": "Product Cost Analysis",
+    "owner": "Administrator",
+    "report_name": "Product Cost Analysis",
+    "report_type": "Script Report",
+    "roles": [
+        {
+            "role": "System Manager"
+        },
+        {
+            "role": "Accounts Manager"
+        }
+    ],
+    "_user_tags": "",
+    "_comments": "",
+    "_assign": "",
+    "_liked_by": ""
+} 

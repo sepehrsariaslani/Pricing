@@ -1,0 +1,752 @@
+{
+"actions": [],
+"allow_rename": 1,
+"autoname": "naming_series:",
+"creation": "2024-01-01 00:00:00.000000",
+"default_view": "List",
+"doctype": "DocType",
+"editable_grid": 1,
+"engine": "InnoDB",
+"field_order": [
+"naming_series",
+"title",
+"competitor_name",
+"competitor_type",
+"market_segment",
+"analysis_date",
+"column_break_6",
+"status",
+"priority",
+"analyst",
+"next_review_date",
+"section_break_11",
+"company_info_tab",
+"company_size",
+"annual_revenue",
+"market_share",
+"geographic_presence",
+"column_break_16",
+"strengths",
+"weaknesses",
+"opportunities",
+"threats",
+"section_break_21",
+"pricing_strategy_tab",
+"pricing_model",
+"average_discount",
+"payment_terms",
+"seasonal_pricing",
+"column_break_26",
+"price_elasticity",
+"promotional_frequency",
+"bundling_strategy",
+"loyalty_programs",
+"section_break_31",
+"product_comparison_tab",
+"products",
+"section_break_34",
+"market_intelligence_tab",
+"market_position",
+"customer_satisfaction",
+"brand_strength",
+"innovation_index",
+"column_break_39",
+"digital_presence",
+"social_media_score",
+"online_reviews_rating",
+"website_traffic_rank",
+"section_break_44",
+"financial_analysis_tab",
+"revenue_growth",
+"profit_margin",
+"debt_to_equity",
+"current_ratio",
+"column_break_49",
+"inventory_turnover",
+"return_on_assets",
+"return_on_equity",
+"cash_flow_ratio",
+"section_break_54",
+"strategic_analysis_tab",
+"competitive_advantages",
+"key_partnerships",
+"distribution_channels",
+"technology_adoption",
+"column_break_59",
+"regulatory_compliance",
+"sustainability_initiatives",
+"future_plans",
+"risk_factors",
+"section_break_64",
+"recommendations_tab",
+"strategic_recommendations",
+"pricing_recommendations",
+"action_items",
+"monitoring_kpis",
+"section_break_69",
+"web_crawler_tab",
+"website_url",
+"enable_auto_crawling",
+"crawling_frequency",
+"last_crawl_date",
+"column_break_web1",
+"crawl_products",
+"crawl_prices",
+"crawl_images",
+"crawl_seo_data",
+"section_break_web2",
+"seo_analysis_tab",
+"domain_authority",
+"page_authority",
+"backlinks_count",
+"organic_keywords",
+"column_break_seo1",
+"monthly_traffic",
+"traffic_trend",
+"top_keywords",
+"meta_description",
+"section_break_seo2",
+"monitoring_tab",
+"enable_price_monitoring",
+"price_change_threshold",
+"notification_email",
+"last_notification_date",
+"column_break_mon1",
+"enable_product_monitoring",
+"new_product_alerts",
+"stock_status_monitoring",
+"competitor_alerts",
+"section_break_mon2",
+"attachments_tab",
+"attachments"
+],
+"fields": [
+{
+"fieldname": "naming_series",
+"fieldtype": "Select",
+"label": "Naming Series",
+"options": "COMP-ANAL-.YYYY.-",
+"reqd": 1
+},
+{
+"fieldname": "title",
+"fieldtype": "Data",
+"in_list_view": 1,
+"label": "عنوان",
+"reqd": 1
+},
+{
+"fieldname": "competitor_name",
+"fieldtype": "Data",
+"in_list_view": 1,
+"label": "نام رقیب",
+"reqd": 1
+},
+{
+"fieldname": "competitor_type",
+"fieldtype": "Select",
+"in_list_view": 1,
+"label": "نوع رقیب",
+"options": "\nرقیب مستقیم\nرقیب غیرمستقیم\nمحصول جایگزین\nورودی جدید\nتهدید بالقوه",
+"reqd": 1
+},
+{
+"fieldname": "market_segment",
+"fieldtype": "Select",
+"label": "بخش بازار",
+"options": "\nپریمیوم\nمتوسط\nاقتصادی\nلوکس\nبازار عمومی\nتخصصی"
+},
+{
+"fieldname": "analysis_date",
+"fieldtype": "Date",
+"in_list_view": 1,
+"label": "تاریخ تحلیل",
+"reqd": 1
+},
+{
+"fieldname": "column_break_6",
+"fieldtype": "Column Break"
+},
+{
+"fieldname": "status",
+"fieldtype": "Select",
+"in_list_view": 1,
+"label": "وضعیت",
+"options": "\nفعال\nغیرفعال\nدر حال نظارت\nبایگانی شده",
+"reqd": 1
+},
+{
+"fieldname": "priority",
+"fieldtype": "Select",
+"label": "اولویت",
+"options": "\nبالا\nمتوسط\nپایین"
+},
+{
+"fieldname": "analyst",
+"fieldtype": "Link",
+"label": "تحلیلگر",
+"options": "User"
+},
+{
+"fieldname": "next_review_date",
+"fieldtype": "Date",
+"label": "تاریخ بررسی بعدی"
+},
+{
+"fieldname": "section_break_11",
+"fieldtype": "Section Break"
+},
+{
+"fieldname": "company_info_tab",
+"fieldtype": "Tab Break",
+"label": "اطلاعات شرکت"
+},
+{
+"fieldname": "company_size",
+"fieldtype": "Select",
+"label": "اندازه شرکت",
+"options": "\nاستارتاپ\nکوچک (۱-۵۰ نفر)\nمتوسط (۵۱-۵۰۰ نفر)\nبزرگ (۵۰۱-۵۰۰۰ نفر)\nسازمانی (بیش از ۵۰۰۰ نفر)"
+},
+{
+"fieldname": "annual_revenue",
+"fieldtype": "Currency",
+"label": "درآمد سالانه"
+},
+{
+"fieldname": "market_share",
+"fieldtype": "Percent",
+"label": "سهم بازار"
+},
+{
+"fieldname": "geographic_presence",
+"fieldtype": "Small Text",
+"label": "حضور جغرافیایی"
+},
+{
+"fieldname": "column_break_16",
+"fieldtype": "Column Break"
+},
+{
+"fieldname": "strengths",
+"fieldtype": "Text",
+"label": "نقاط قوت"
+},
+{
+"fieldname": "weaknesses",
+"fieldtype": "Text",
+"label": "نقاط ضعف"
+},
+{
+"fieldname": "opportunities",
+"fieldtype": "Text",
+"label": "فرصت‌ها"
+},
+{
+"fieldname": "threats",
+"fieldtype": "Text",
+"label": "تهدیدها"
+},
+{
+"fieldname": "section_break_21",
+"fieldtype": "Section Break"
+},
+{
+"fieldname": "pricing_strategy_tab",
+"fieldtype": "Tab Break",
+"label": "استراتژی قیمت‌گذاری"
+},
+{
+"fieldname": "pricing_model",
+"fieldtype": "Select",
+"label": "مدل قیمت‌گذاری",
+"options": "\nهزینه‌محور\nارزش‌محور\nرقابتی\nنفوذی\nکاهشی\nرایگان تا پریمیوم\nاشتراکی\nپویا"
+},
+{
+"fieldname": "average_discount",
+"fieldtype": "Percent",
+"label": "میانگین تخفیف"
+},
+{
+"fieldname": "payment_terms",
+"fieldtype": "Small Text",
+"label": "شرایط پرداخت"
+},
+{
+"fieldname": "seasonal_pricing",
+"fieldtype": "Check",
+"label": "قیمت‌گذاری فصلی"
+},
+{
+"fieldname": "column_break_26",
+"fieldtype": "Column Break"
+},
+{
+"fieldname": "price_elasticity",
+"fieldtype": "Select",
+"label": "کشش قیمت",
+"options": "\nبسیار کشسان\nکشسان\nکشش واحد\nغیرکشسان\nبسیار غیرکشسان"
+},
+{
+"fieldname": "promotional_frequency",
+"fieldtype": "Select",
+"label": "تناوب تبلیغات",
+"options": "\nروزانه\nهفتگی\nماهانه\nفصلی\nفصل‌وار\nبه ندرت"
+},
+{
+"fieldname": "bundling_strategy",
+"fieldtype": "Check",
+"label": "استراتژی بسته‌بندی"
+},
+{
+"fieldname": "loyalty_programs",
+"fieldtype": "Check",
+"label": "برنامه‌های وفاداری"
+},
+{
+"fieldname": "section_break_31",
+"fieldtype": "Section Break"
+},
+{
+"fieldname": "product_comparison_tab",
+"fieldtype": "Tab Break",
+"label": "مقایسه محصولات"
+},
+{
+"fieldname": "products",
+"fieldtype": "Table",
+"label": "محصولات",
+"options": "Competitor Product"
+},
+{
+"fieldname": "section_break_34",
+"fieldtype": "Section Break"
+},
+{
+"fieldname": "market_intelligence_tab",
+"fieldtype": "Tab Break",
+"label": "هوش بازار"
+},
+{
+"fieldname": "market_position",
+"fieldtype": "Select",
+"label": "موقعیت بازار",
+"options": "\nرهبر بازار\nچالشگر\nپیرو\nتخصصی"
+},
+{
+"fieldname": "customer_satisfaction",
+"fieldtype": "Rating",
+"label": "رضایت مشتری"
+},
+{
+"fieldname": "brand_strength",
+"fieldtype": "Rating",
+"label": "قدرت برند"
+},
+{
+"fieldname": "innovation_index",
+"fieldtype": "Rating",
+"label": "شاخص نوآوری"
+},
+{
+"fieldname": "column_break_39",
+"fieldtype": "Column Break"
+},
+{
+"fieldname": "digital_presence",
+"fieldtype": "Rating",
+"label": "حضور دیجیتال"
+},
+{
+"fieldname": "social_media_score",
+"fieldtype": "Rating",
+"label": "امتیاز رسانه‌های اجتماعی"
+},
+{
+"fieldname": "online_reviews_rating",
+"fieldtype": "Float",
+"label": "امتیاز نظرات آنلاین"
+},
+{
+"fieldname": "website_traffic_rank",
+"fieldtype": "Int",
+"label": "رتبه ترافیک وب‌سایت"
+},
+{
+"fieldname": "section_break_44",
+"fieldtype": "Section Break"
+},
+{
+"fieldname": "financial_analysis_tab",
+"fieldtype": "Tab Break",
+"label": "تحلیل مالی"
+},
+{
+"fieldname": "revenue_growth",
+"fieldtype": "Percent",
+"label": "رشد درآمد"
+},
+{
+"fieldname": "profit_margin",
+"fieldtype": "Percent",
+"label": "حاشیه سود"
+},
+{
+"fieldname": "debt_to_equity",
+"fieldtype": "Float",
+"label": "نسبت بدهی به حقوق صاحبان سهام"
+},
+{
+"fieldname": "current_ratio",
+"fieldtype": "Float",
+"label": "نسبت جاری"
+},
+{
+"fieldname": "column_break_49",
+"fieldtype": "Column Break"
+},
+{
+"fieldname": "inventory_turnover",
+"fieldtype": "Float",
+"label": "گردش موجودی"
+},
+{
+"fieldname": "return_on_assets",
+"fieldtype": "Percent",
+"label": "بازده دارایی‌ها"
+},
+{
+"fieldname": "return_on_equity",
+"fieldtype": "Percent",
+"label": "بازده حقوق صاحبان سهام"
+},
+{
+"fieldname": "cash_flow_ratio",
+"fieldtype": "Float",
+"label": "نسبت جریان نقدی"
+},
+{
+"fieldname": "section_break_54",
+"fieldtype": "Section Break"
+},
+{
+"fieldname": "strategic_analysis_tab",
+"fieldtype": "Tab Break",
+"label": "تحلیل استراتژیک"
+},
+{
+"fieldname": "competitive_advantages",
+"fieldtype": "Text",
+"label": "مزایای رقابتی"
+},
+{
+"fieldname": "key_partnerships",
+"fieldtype": "Text",
+"label": "شراکت‌های کلیدی"
+},
+{
+"fieldname": "distribution_channels",
+"fieldtype": "Text",
+"label": "کانال‌های توزیع"
+},
+{
+"fieldname": "technology_adoption",
+"fieldtype": "Rating",
+"label": "پذیرش فناوری"
+},
+{
+"fieldname": "column_break_59",
+"fieldtype": "Column Break"
+},
+{
+"fieldname": "regulatory_compliance",
+"fieldtype": "Rating",
+"label": "انطباق با مقررات"
+},
+{
+"fieldname": "sustainability_initiatives",
+"fieldtype": "Text",
+"label": "ابتکارات پایداری"
+},
+{
+"fieldname": "future_plans",
+"fieldtype": "Text",
+"label": "برنامه‌های آینده"
+},
+{
+"fieldname": "risk_factors",
+"fieldtype": "Text",
+"label": "عوامل ریسک"
+},
+{
+"fieldname": "section_break_64",
+"fieldtype": "Section Break"
+},
+{
+"fieldname": "recommendations_tab",
+"fieldtype": "Tab Break",
+"label": "توصیه‌ها"
+},
+{
+"fieldname": "strategic_recommendations",
+"fieldtype": "Text",
+"label": "توصیه‌های استراتژیک"
+},
+{
+"fieldname": "pricing_recommendations",
+"fieldtype": "Text",
+"label": "توصیه‌های قیمت‌گذاری"
+},
+{
+"fieldname": "action_items",
+"fieldtype": "Text",
+"label": "اقدامات لازم"
+},
+{
+"fieldname": "monitoring_kpis",
+"fieldtype": "Text",
+"label": "شاخص‌های نظارت"
+},
+{
+"fieldname": "section_break_69",
+"fieldtype": "Section Break"
+},
+{
+"fieldname": "attachments_tab",
+"fieldtype": "Tab Break",
+"label": "پیوست‌ها"
+},
+{
+"fieldname": "web_crawler_tab",
+"fieldtype": "Tab Break",
+"label": "وب کرالر هوشمند"
+},
+{
+"fieldname": "website_url",
+"fieldtype": "Long Text",
+"label": "آدرس وب‌سایت رقیب",
+"description": "آدرس کامل وب‌سایت رقیب برای کرال کردن"
+},
+{
+"fieldname": "enable_auto_crawling",
+"fieldtype": "Check",
+"label": "فعال‌سازی کرال خودکار",
+"default": 0
+},
+{
+"fieldname": "crawling_frequency",
+"fieldtype": "Select",
+"label": "تناوب کرال",
+"options": "\nروزانه\nهفتگی\nماهانه\nدستی",
+"depends_on": "enable_auto_crawling"
+},
+{
+"fieldname": "last_crawl_date",
+"fieldtype": "Datetime",
+"label": "آخرین کرال",
+"read_only": 1
+},
+{
+"fieldname": "column_break_web1",
+"fieldtype": "Column Break"
+},
+{
+"fieldname": "crawl_products",
+"fieldtype": "Check",
+"label": "استخراج محصولات",
+"default": 1
+},
+{
+"fieldname": "crawl_prices",
+"fieldtype": "Check",
+"label": "استخراج قیمت‌ها",
+"default": 1
+},
+{
+"fieldname": "crawl_images",
+"fieldtype": "Check",
+"label": "دانلود تصاویر محصولات",
+"default": 0
+},
+{
+"fieldname": "crawl_seo_data",
+"fieldtype": "Check",
+"label": "تحلیل داده‌های SEO",
+"default": 1
+},
+{
+"fieldname": "section_break_web2",
+"fieldtype": "Section Break"
+},
+{
+"fieldname": "seo_analysis_tab",
+"fieldtype": "Tab Break",
+"label": "تحلیل SEO و ترافیک"
+},
+{
+"fieldname": "domain_authority",
+"fieldtype": "Int",
+"label": "اعتبار دامنه (DA)"
+},
+{
+"fieldname": "page_authority",
+"fieldtype": "Int",
+"label": "اعتبار صفحه (PA)"
+},
+{
+"fieldname": "backlinks_count",
+"fieldtype": "Int",
+"label": "تعداد بک‌لینک"
+},
+{
+"fieldname": "organic_keywords",
+"fieldtype": "Int",
+"label": "کلمات کلیدی ارگانیک"
+},
+{
+"fieldname": "column_break_seo1",
+"fieldtype": "Column Break"
+},
+{
+"fieldname": "monthly_traffic",
+"fieldtype": "Int",
+"label": "ترافیک ماهانه"
+},
+{
+"fieldname": "traffic_trend",
+"fieldtype": "Select",
+"label": "روند ترافیک",
+"options": "\nصعودی\nنزولی\nثابت\nنامشخص"
+},
+{
+"fieldname": "top_keywords",
+"fieldtype": "Long Text",
+"label": "کلمات کلیدی برتر"
+},
+{
+"fieldname": "meta_description",
+"fieldtype": "Text",
+"label": "توضیحات متا"
+},
+{
+"fieldname": "section_break_seo2",
+"fieldtype": "Section Break"
+},
+{
+"fieldname": "monitoring_tab",
+"fieldtype": "Tab Break",
+"label": "نظارت و هشدارها"
+},
+{
+"fieldname": "enable_price_monitoring",
+"fieldtype": "Check",
+"label": "نظارت بر تغییرات قیمت",
+"default": 1
+},
+{
+"fieldname": "price_change_threshold",
+"fieldtype": "Percent",
+"label": "آستانه تغییر قیمت برای هشدار",
+"default": 5,
+"depends_on": "enable_price_monitoring"
+},
+{
+"fieldname": "notification_email",
+"fieldtype": "Data",
+"label": "ایمیل هشدارها",
+"options": "Email"
+},
+{
+"fieldname": "last_notification_date",
+"fieldtype": "Datetime",
+"label": "آخرین هشدار",
+"read_only": 1
+},
+{
+"fieldname": "column_break_mon1",
+"fieldtype": "Column Break"
+},
+{
+"fieldname": "enable_product_monitoring",
+"fieldtype": "Check",
+"label": "نظارت بر محصولات جدید",
+"default": 1
+},
+{
+"fieldname": "new_product_alerts",
+"fieldtype": "Check",
+"label": "هشدار محصولات جدید",
+"default": 1
+},
+{
+"fieldname": "stock_status_monitoring",
+"fieldtype": "Check",
+"label": "نظارت بر وضعیت موجودی",
+"default": 0
+},
+{
+"fieldname": "competitor_alerts",
+"fieldtype": "Long Text",
+"label": "تنظیمات هشدارهای رقیب"
+},
+{
+"fieldname": "section_break_mon2",
+"fieldtype": "Section Break"
+},
+{
+"fieldname": "attachments",
+"fieldtype": "Table",
+"label": "پیوست‌ها",
+"options": "File"
+}
+],
+"index_web_pages_for_search": 1,
+"links": [],
+"modified": "2024-01-01 00:00:00.000000",
+"modified_by": "Administrator",
+"module": "Pricing",
+"name": "Competitor Analysis",
+"naming_rule": "By \"Naming Series\" field",
+"owner": "Administrator",
+"permissions": [
+{
+"create": 1,
+"delete": 1,
+"email": 1,
+"export": 1,
+"print": 1,
+"read": 1,
+"report": 1,
+"role": "System Manager",
+"share": 1,
+"write": 1
+},
+{
+"create": 1,
+"delete": 1,
+"email": 1,
+"export": 1,
+"print": 1,
+"read": 1,
+"report": 1,
+"role": "Accounts Manager",
+"share": 1,
+"write": 1
+},
+{
+"email": 1,
+"export": 1,
+"print": 1,
+"read": 1,
+"report": 1,
+"role": "Sales Manager",
+"share": 1
+}
+],
+"sort_field": "modified",
+"sort_order": "DESC",
+"states": [],
+"title_field": "title",
+"track_changes": 1,
+"track_seen": 1,
+"track_views": 1
+}

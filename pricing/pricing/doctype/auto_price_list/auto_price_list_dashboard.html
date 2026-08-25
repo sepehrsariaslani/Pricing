@@ -1,0 +1,15 @@
+<!-- Chart.js Library -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.js"></script>
+
+<!-- Fallback Chart.js -->
+<script>
+if (typeof Chart === 'undefined') {
+    console.log('Loading Chart.js fallback...');
+    const fallbackScript = document.createElement('script');
+    fallbackScript.src = 'https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.js';
+    document.head.appendChild(fallbackScript);
+}
+</script>
+
+<!-- Chart Loader -->
+<script src="chart_loader.js"></script>

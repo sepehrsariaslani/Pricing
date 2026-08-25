@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl" class="h-full">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, viewport-fit=cover, user-scalable=no" />
+    <title>قیمت‌گذاری | Pricing</title>
+    
+    <!-- Local Font -->
+    <link rel="stylesheet" href="/assets/pricing/frontend/fonts/fonts.css">
+    
+    <!-- PWA Meta Tags -->
+    <meta name="theme-color" content="#2563eb" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="apple-mobile-web-app-title" content="قیمت‌گذاری" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="application-name" content="قیمت‌گذاری" />
+    <meta name="msapplication-TileColor" content="#2563eb" />
+    <meta name="msapplication-tap-highlight" content="no" />
+    <meta name="format-detection" content="telephone=no" />
+    
+    <!-- Icons -->
+    <link rel="icon" type="image/svg+xml" href="/assets/pricing/images/pricing-icon.svg" />
+    <link rel="apple-touch-icon" href="/assets/pricing/images/pricing-icon.svg" />
+    
+    <style>
+      * {
+        font-family: 'Vazirmatn', system-ui, -apple-system, sans-serif !important;
+      }
+      
+      /* Loading spinner */
+      .loading-spinner {
+        width: 48px;
+        height: 48px;
+        border: 4px solid #e5e7eb;
+        border-top-color: #2563eb;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+      }
+      
+      @keyframes spin {
+        to { transform: rotate(360deg); }
+      }
+      
+      /* Initial loading screen */
+      #loading-screen {
+        position: fixed;
+        inset: 0;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        background: linear-gradient(135deg, #2563eb 0%, #0891b2 100%);
+        z-index: 9999;
+        transition: opacity 0.3s ease;
+      }
+      
+      #loading-screen.fade-out {
+        opacity: 0;
+        pointer-events: none;
+      }
+      
+      #loading-screen h1 {
+        color: white;
+        font-size: 1.5rem;
+        font-weight: 700;
+        margin-top: 1.5rem;
+      }
+      
+      #loading-screen p {
+        color: rgba(255, 255, 255, 0.8);
+        font-size: 0.875rem;
+        margin-top: 0.5rem;
+      }
+      
+      #loading-screen .loading-spinner {
+        border-color: rgba(255, 255, 255, 0.3);
+        border-top-color: white;
+      }
+      
+      /* Persian numbers */
+      .persian-nums {
+        font-feature-settings: "ss01";
+      }
+    </style>
+    
+    <!-- Vue App Assets -->
+    <script type="module" crossorigin src="/assets/pricing/frontend/assets/index.js?v=1"></script>
+    <link rel="stylesheet" crossorigin href="/assets/pricing/frontend/assets/index.css?v=1">
+  </head>
+  <body class="h-full antialiased">
+    <!-- Loading Screen -->
+    <div id="loading-screen">
+      <div class="loading-spinner"></div>
+      <h1>قیمت‌گذاری</h1>
+      <p>در حال بارگذاری...</p>
+    </div>
+    
+    <!-- Vue App Mount Point -->
+    <div id="app" class="h-full"></div>
+    
+    <!-- Boot Data -->
+    <script>
+      // Inject boot data from Frappe
+      {% for key in boot %}
+      window["{{ key }}"] = {{ boot[key] | tojson }};
+      {% endfor %}
+      
+      // Hide loading screen when Vue app mounts
+      window.addEventListener('load', function() {
+        setTimeout(function() {
+          var loadingScreen = document.getElementById('loading-screen');
+          if (loadingScreen) {
+            loadingScreen.classList.add('fade-out');
+            setTimeout(function() {
+              loadingScreen.remove();
+            }, 300);
+          }
+        }, 500);
+      });
+    </script>
+  </body>
+</html>

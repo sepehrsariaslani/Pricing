@@ -1,0 +1,196 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2025-10-02 11:41:05.000000",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "item_code",
+  "item_name",
+  "column_break_3",
+  "uom",
+  "manual_raw_material_cost",
+  "section_break_6",
+  "manual_operation_cost",
+  "manual_overhead_cost",
+  "column_break_9",
+  "manual_electricity_cost",
+  "manual_consumable_cost",
+  "section_break_detailed_costs",
+  "manual_rent_cost",
+  "manual_labor_cost",
+  "column_break_detailed_2",
+  "manual_subcontracting_cost",
+  "manual_overhead_additional_cost",
+  "section_break_totals",
+  "total_manual_cost",
+  "notes",
+  "section_break_12",
+  "effective_date",
+  "column_break_14",
+  "created_by",
+  "last_updated"
+ ],
+ "fields": [
+  {
+   "fieldname": "item_code",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Item Code",
+   "options": "Item",
+   "reqd": 1
+  },
+  {
+   "fetch_from": "item_code.item_name",
+   "fieldname": "item_name",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Item Name",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_3",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fetch_from": "item_code.stock_uom",
+   "fieldname": "uom",
+   "fieldtype": "Link",
+   "label": "UOM",
+   "options": "UOM",
+   "read_only": 1
+  },
+  {
+   "fieldname": "manual_raw_material_cost",
+   "fieldtype": "Currency",
+   "in_list_view": 1,
+   "label": "Manual Raw Material Cost",
+   "precision": "2"
+  },
+  {
+   "fieldname": "section_break_6",
+   "fieldtype": "Section Break",
+   "label": "Additional Manual Costs"
+  },
+  {
+   "fieldname": "manual_operation_cost",
+   "fieldtype": "Currency",
+   "label": "Manual Operation Cost",
+   "precision": "2"
+  },
+  {
+   "fieldname": "manual_overhead_cost",
+   "fieldtype": "Currency",
+   "label": "Manual Overhead Cost",
+   "precision": "2"
+  },
+  {
+   "fieldname": "column_break_9",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "manual_electricity_cost",
+   "fieldtype": "Currency",
+   "label": "Manual Electricity Cost",
+   "precision": "2"
+  },
+  {
+   "fieldname": "manual_consumable_cost",
+   "fieldtype": "Currency",
+   "label": "Manual Consumable Cost",
+   "precision": "2"
+  },
+  {
+   "fieldname": "section_break_detailed_costs",
+   "fieldtype": "Section Break",
+   "label": "Detailed Manual Costs"
+  },
+  {
+   "fieldname": "manual_rent_cost",
+   "fieldtype": "Currency",
+   "label": "Manual Rent Cost",
+   "precision": "2"
+  },
+  {
+   "fieldname": "manual_labor_cost",
+   "fieldtype": "Currency",
+   "label": "Manual Labor Cost",
+   "precision": "2"
+  },
+  {
+   "fieldname": "column_break_detailed_2",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "manual_subcontracting_cost",
+   "fieldtype": "Currency",
+   "label": "Manual Subcontracting Cost",
+   "precision": "2"
+  },
+  {
+   "fieldname": "manual_overhead_additional_cost",
+   "fieldtype": "Currency",
+   "label": "Manual Additional Overhead Cost",
+   "precision": "2"
+  },
+  {
+   "fieldname": "section_break_totals",
+   "fieldtype": "Section Break",
+   "label": "Totals"
+  },
+  {
+   "fieldname": "total_manual_cost",
+   "fieldtype": "Currency",
+   "in_list_view": 1,
+   "label": "Total Manual Cost",
+   "precision": "2",
+   "read_only": 1
+  },
+  {
+   "fieldname": "notes",
+   "fieldtype": "Small Text",
+   "label": "Notes"
+  },
+  {
+   "fieldname": "section_break_12",
+   "fieldtype": "Section Break",
+   "label": "Tracking Info"
+  },
+  {
+   "default": "Today",
+   "fieldname": "effective_date",
+   "fieldtype": "Date",
+   "label": "Effective Date"
+  },
+  {
+   "fieldname": "column_break_14",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "user",
+   "fieldname": "created_by",
+   "fieldtype": "Data",
+   "label": "Created By",
+   "read_only": 1
+  },
+  {
+   "default": "Now",
+   "fieldname": "last_updated",
+   "fieldtype": "Datetime",
+   "label": "Last Updated",
+   "read_only": 1
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "istable": 1,
+ "links": [],
+ "modified": "2025-10-02 11:41:05.000000",
+ "modified_by": "Administrator",
+ "module": "Pricing",
+ "name": "Auto Price List Manual Item Price",
+ "owner": "Administrator",
+ "permissions": [],
+ "sort_field": "modified",
+ "sort_order": "DESC"
+}

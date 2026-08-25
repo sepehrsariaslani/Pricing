@@ -1,0 +1,253 @@
+app_name = "pricing"
+app_title = "Pricing"
+app_publisher = "Sepehr"
+app_description = "This app is for calculating the prices of the items"
+app_email = "Sepehr.sariaslani@gmail.com"
+app_license = "mit"
+app_icon_url = "/assets/pricing/images/pricing-icon.svg"
+app_icon_title = "قیمت‌گذاری"
+app_icon_route = "/pricing"
+
+# Apps
+# ------------------
+
+# required_apps = []
+
+# Each item in the list will be shown as an app in the apps page
+add_to_apps_screen = [
+	{
+		"name": "pricing",
+		"logo": "/assets/pricing/images/pricing-icon.svg",
+		"title": "قیمت‌گذاری",
+		"route": "/pricing",
+		"has_permission": "pricing.pricing_api.can_access_pricing"
+	}
+]
+
+# Includes in <head>
+# ------------------
+
+# include js, css files in header of desk.html
+# app_include_css = "/assets/pricing/css/pricing.css"
+# Keep empty to avoid loading external CDN on every Desk page.
+app_include_js = []
+
+# include js, css files in header of web template
+# web_include_css = "/assets/pricing/css/pricing.css"
+# web_include_js = "/assets/pricing/js/pricing.js"
+
+# include custom scss in every website theme (without file extension ".scss")
+# website_theme_scss = "pricing/public/scss/website"
+
+# include js, css files in header of web form
+# webform_include_js = {"doctype": "public/js/doctype.js"}
+# webform_include_css = {"doctype": "public/css/doctype.css"}
+
+# include js in page
+# page_js = {"page" : "public/js/file.js"}
+
+# include js in doctype views
+doctype_js = {
+    "Auto Price List": "public/js/auto_price_list.js",
+    "Item": "public/js/item.js",
+    "Selling Settings": "public/js/selling_settings.js"
+}
+# doctype_list_js = {"doctype" : "public/js/doctype_list.js"}
+# doctype_tree_js = {"doctype" : "public/js/doctype_tree.js"}
+# doctype_calendar_js = {"doctype" : "public/js/doctype_calendar.js"}
+
+# Svg Icons
+# ------------------
+# include app icons in desk
+# app_include_icons = "pricing/public/icons.svg"
+
+# Home Pages
+# ----------
+
+# application home page (will override Website Settings)
+# home_page = "login"
+
+# website user home page (by Role)
+# role_home_page = {
+# 	"Role": "home_page"
+# }
+
+# Website Route Rules for Pricing Dashboard (Vue SPA)
+website_route_rules = [
+	{"from_route": "/pricing", "to_route": "pricing"},
+	{"from_route": "/pricing/<path:app_path>", "to_route": "pricing"},
+]
+
+# Generators
+# ----------
+
+# automatically create page for each record of this doctype
+# website_generators = ["Web Page"]
+
+# Jinja
+# ----------
+
+# add methods and filters to jinja environment
+# jinja = {
+# 	"methods": "pricing.utils.jinja_methods",
+# 	"filters": "pricing.utils.jinja_filters"
+# }
+
+# Installation
+# ------------
+
+# before_install = "pricing.install.before_install"
+# after_install = "pricing.install.after_install"
+
+# Uninstallation
+# ------------
+
+# before_uninstall = "pricing.uninstall.before_uninstall"
+# after_uninstall = "pricing.uninstall.after_uninstall"
+
+# Integration Setup
+# ------------------
+# To set up dependencies/integrations with other apps
+# Name of the app being installed is passed as an argument
+
+# before_app_install = "pricing.utils.before_app_install"
+# after_app_install = "pricing.utils.after_app_install"
+
+# Integration Cleanup
+# -------------------
+# To clean up dependencies/integrations with other apps
+# Name of the app being uninstalled is passed as an argument
+
+# before_app_uninstall = "pricing.utils.before_app_uninstall"
+# after_app_uninstall = "pricing.utils.after_app_uninstall"
+
+# Desk Notifications
+# ------------------
+# See frappe.core.notifications.get_notification_config
+
+# notification_config = "pricing.notifications.get_notification_config"
+
+# Permissions
+# -----------
+# Permissions evaluated in scripted ways
+
+# permission_query_conditions = {
+# 	"Event": "frappe.desk.doctype.event.event.get_permission_query_conditions",
+# }
+#
+# has_permission = {
+# 	"Event": "frappe.desk.doctype.event.event.has_permission",
+# }
+
+# DocType Class
+# ---------------
+# Override standard doctype classes
+
+# override_doctype_class = {
+# 	"ToDo": "custom_app.overrides.CustomToDo"
+# }
+
+# Document Events
+# ---------------
+# Hook on document methods and events
+
+# doc_events = {
+# 	"*": {
+# 		"on_update": "method",
+# 		"on_cancel": "method",
+# 		"on_trash": "method"
+# 	}
+# }
+
+# Scheduled Tasks
+# ---------------
+
+scheduler_events = {
+	"daily": [
+		"pricing.pricing.doctype.competitor_analysis.scheduler.run_scheduled_competitor_crawls",
+		"pricing.pricing.doctype.competitor_analysis.scheduler.check_competitor_price_alerts"
+	],
+	"hourly": [
+		"pricing.pricing.doctype.competitor_analysis.scheduler.update_competitor_seo_metrics"
+	],
+	"weekly": [
+		"pricing.pricing.doctype.competitor_analysis.scheduler.generate_weekly_competitor_report",
+        "pricing.scripts.fabric_scraper.update_fabric_prices"
+	]
+}
+
+# Testing
+# -------
+
+# before_tests = "pricing.install.before_tests"
+
+# Overriding Methods
+# ------------------------------
+#
+# override_whitelisted_methods = {
+# 	"frappe.desk.doctype.event.event.get_events": "pricing.event.get_events"
+# }
+#
+# each overriding function accepts a `data` argument;
+# generated from the base implementation of the doctype dashboard,
+# along with any modifications made in other Frappe apps
+# override_doctype_dashboards = {
+# 	"Task": "pricing.task.get_dashboard_data"
+# }
+
+# exempt linked doctypes from being automatically cancelled
+#
+# auto_cancel_exempted_doctypes = ["Auto Repeat"]
+
+# Ignore links to specified DocTypes when deleting documents
+# -----------------------------------------------------------
+
+# ignore_links_on_delete = ["Communication", "ToDo"]
+
+# Request Events
+# ----------------
+# before_request = ["pricing.utils.before_request"]
+# after_request = ["pricing.utils.after_request"]
+
+# Job Events
+# ----------
+# before_job = ["pricing.utils.before_job"]
+# after_job = ["pricing.utils.after_job"]
+
+# User Data Protection
+# --------------------
+
+# user_data_fields = [
+# 	{
+# 		"doctype": "{doctype_1}",
+# 		"filter_by": "{filter_by}",
+# 		"redact_fields": ["{field_1}", "{field_2}"],
+# 		"partial": 1,
+# 	},
+# 	{
+# 		"doctype": "{doctype_2}",
+# 		"filter_by": "{filter_by}",
+# 		"partial": 1,
+# 	},
+# 	{
+# 		"doctype": "{doctype_3}",
+# 		"strict": False,
+# 	},
+# 	{
+# 		"doctype": "{doctype_4}"
+# 	}
+# ]
+
+# Authentication and authorization
+# --------------------------------
+
+# auth_hooks = [
+# 	"pricing.auth.validate"
+# ]
+
+# Automatically update python controller files with type annotations for this app.
+# export_python_type_annotations = True
+
+# default_log_clearing_doctypes = {
+# 	"Logging DocType Name": 30  # days to retain logs
+# }

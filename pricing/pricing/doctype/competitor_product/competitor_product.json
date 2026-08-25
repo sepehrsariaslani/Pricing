@@ -1,0 +1,245 @@
+{
+ "actions": [],
+ "creation": "2024-01-01 00:00:00.000000",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "competitor_analysis",
+  "product_url",
+  "item_code",
+  "item_name",
+  "category",
+  "column_break_4",
+  "competitor_price",
+  "our_price",
+  "price_difference",
+  "price_difference_percent",
+  "section_break_pricing",
+  "market_position",
+  "price_history",
+  "column_break_8",
+  "availability",
+  "stock_status",
+  "section_break_product_info",
+  "description",
+  "features_comparison",
+  "column_break_12",
+  "product_image",
+  "image_url",
+  "section_break_seo",
+  "seo_title",
+  "seo_description",
+  "column_break_16",
+  "meta_keywords",
+  "quality_rating",
+  "section_break_tracking",
+  "last_crawled",
+  "last_updated",
+  "column_break_20",
+  "crawl_frequency",
+  "auto_update_enabled"
+ ],
+ "fields": [
+  {
+   "fieldname": "competitor_analysis",
+   "fieldtype": "Link",
+   "label": "تحلیل رقیب",
+   "options": "Competitor Analysis",
+   "reqd": 1
+  },
+  {
+   "fieldname": "product_url",
+   "fieldtype": "Long Text",
+   "label": "آدرس محصول",
+   "description": "لینک مستقیم محصول در وب‌سایت رقیب"
+  },
+  {
+   "fieldname": "item_code",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "کد محصول ما",
+   "options": "Item"
+  },
+  {
+   "fieldname": "item_name",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "نام محصول رقیب",
+   "reqd": 1
+  },
+  {
+   "fieldname": "category",
+   "fieldtype": "Data",
+   "label": "دسته‌بندی"
+  },
+  {
+   "fieldname": "column_break_4",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "competitor_price",
+   "fieldtype": "Currency",
+   "in_list_view": 1,
+   "label": "قیمت رقیب",
+   "reqd": 1
+  },
+  {
+   "fieldname": "our_price",
+   "fieldtype": "Currency",
+   "in_list_view": 1,
+   "label": "قیمت ما",
+   "read_only": 1
+  },
+  {
+   "fieldname": "price_difference",
+   "fieldtype": "Currency",
+   "in_list_view": 1,
+   "label": "اختلاف قیمت",
+   "read_only": 1
+  },
+  {
+   "fieldname": "price_difference_percent",
+   "fieldtype": "Percent",
+   "label": "درصد اختلاف قیمت",
+   "read_only": 1
+  },
+  {
+   "fieldname": "section_break_pricing",
+   "fieldtype": "Section Break",
+   "label": "تاریخچه قیمت"
+  },
+  {
+   "fieldname": "market_position",
+   "fieldtype": "Select",
+   "label": "موقعیت بازار",
+   "options": "\nارزان‌تر\nمشابه\nگران‌تر\nپریمیوم"
+  },
+  {
+   "fieldname": "price_history",
+   "fieldtype": "Text",
+   "label": "تاریخچه تغییرات قیمت",
+   "description": "JSON تاریخچه قیمت‌ها"
+  },
+  {
+   "fieldname": "column_break_8",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "availability",
+   "fieldtype": "Select",
+   "label": "وضعیت موجودی",
+   "options": "\nموجود\nناموجود\nمحدود\nمتوقف شده"
+  },
+  {
+   "fieldname": "stock_status",
+   "fieldtype": "Data",
+   "label": "جزئیات موجودی",
+   "description": "اطلاعات تکمیلی موجودی از وب‌سایت"
+  },
+  {
+   "fieldname": "section_break_product_info",
+   "fieldtype": "Section Break",
+   "label": "اطلاعات محصول"
+  },
+  {
+   "fieldname": "description",
+   "fieldtype": "Text Editor",
+   "label": "توضیحات محصول"
+  },
+  {
+   "fieldname": "features_comparison",
+   "fieldtype": "Text",
+   "label": "مقایسه ویژگی‌ها"
+  },
+  {
+   "fieldname": "column_break_12",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "product_image",
+   "fieldtype": "Attach Image",
+   "label": "تصویر محصول"
+  },
+  {
+   "fieldname": "image_url",
+   "fieldtype": "Long Text",
+   "label": "آدرس تصویر",
+   "description": "لینک تصویر اصلی در وب‌سایت رقیب"
+  },
+  {
+   "fieldname": "section_break_seo",
+   "fieldtype": "Section Break",
+   "label": "اطلاعات SEO"
+  },
+  {
+   "fieldname": "seo_title",
+   "fieldtype": "Data",
+   "label": "عنوان SEO"
+  },
+  {
+   "fieldname": "seo_description",
+   "fieldtype": "Text",
+   "label": "توضیحات SEO"
+  },
+  {
+   "fieldname": "column_break_16",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "meta_keywords",
+   "fieldtype": "Text",
+   "label": "کلمات کلیدی"
+  },
+  {
+   "fieldname": "quality_rating",
+   "fieldtype": "Rating",
+   "label": "امتیاز کیفیت"
+  },
+  {
+   "fieldname": "section_break_tracking",
+   "fieldtype": "Section Break",
+   "label": "ردیابی و به‌روزرسانی"
+  },
+  {
+   "fieldname": "last_crawled",
+   "fieldtype": "Datetime",
+   "label": "آخرین کرال"
+  },
+  {
+   "fieldname": "last_updated",
+   "fieldtype": "Datetime",
+   "label": "آخرین به‌روزرسانی"
+  },
+  {
+   "fieldname": "column_break_20",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "crawl_frequency",
+   "fieldtype": "Select",
+   "label": "فرکانس کرال",
+   "options": "\nروزانه\nهفتگی\nماهانه\nدستی",
+   "default": "هفتگی"
+  },
+  {
+   "fieldname": "auto_update_enabled",
+   "fieldtype": "Check",
+   "label": "به‌روزرسانی خودکار فعال",
+   "default": 1
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "istable": 0,
+ "links": [],
+ "modified": "2024-01-01 00:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Pricing",
+ "name": "Competitor Product",
+ "owner": "Administrator",
+ "permissions": [],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 1
+}

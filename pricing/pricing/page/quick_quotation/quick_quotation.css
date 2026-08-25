@@ -1,0 +1,187 @@
+/* Quick Quotation Page Styles */
+
+.quick-quotation-container {
+    max-width: 1400px;
+    margin: 0 auto;
+}
+
+/* جدول کالاها */
+#items-table {
+    background: white;
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 2px 15px rgba(0,0,0,0.1);
+}
+
+#items-table thead th {
+    font-weight: 600;
+    text-transform: none;
+    font-size: 13px;
+    padding: 15px 10px;
+    border-bottom: none;
+}
+
+#items-table tbody tr {
+    transition: background-color 0.3s ease;
+}
+
+#items-table tbody tr:hover {
+    background-color: #f8f9ff;
+}
+
+#items-table tbody td {
+    padding: 12px 10px;
+    vertical-align: middle;
+    border-color: #eee;
+}
+
+/* کارت‌های خلاصه */
+.summary-card {
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.summary-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 5px 20px rgba(0,0,0,0.15) !important;
+}
+
+.summary-card h5 {
+    font-size: 12px;
+    text-transform: none;
+}
+
+.summary-card h3 {
+    font-size: 18px;
+    font-weight: 700;
+}
+
+/* دکمه‌ها */
+#add-item-btn {
+    height: 34px;
+    margin-top: 26px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border: none;
+    font-weight: 600;
+}
+
+#add-item-btn:hover {
+    background: linear-gradient(135deg, #5a6fd6 0%, #6a4190 100%);
+}
+
+.remove-item-btn {
+    width: 28px;
+    height: 28px;
+    padding: 0;
+    border-radius: 50%;
+}
+
+/* انیمیشن اضافه کردن کالا */
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateX(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+#items-tbody tr:not(#empty-row) {
+    animation: slideIn 0.3s ease;
+}
+
+/* فیلد جستجو */
+#item-search-wrapper .awesomplete {
+    width: 100%;
+}
+
+#item-search-wrapper input {
+    font-size: 14px;
+}
+
+/* تعداد در جدول */
+.qty-input {
+    border: 2px solid #ddd;
+    border-radius: 5px;
+    padding: 5px;
+    transition: border-color 0.3s ease;
+}
+
+.qty-input:focus {
+    border-color: #667eea;
+    outline: none;
+}
+
+/* جزئیات قسط */
+#installment-details {
+    animation: fadeIn 0.5s ease;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+/* دکمه‌های عملیات */
+.action-buttons .btn {
+    padding: 10px 20px;
+    font-weight: 600;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+}
+
+.action-buttons .btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+}
+
+#create-quotation-btn {
+    background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+    border: none;
+}
+
+#print-btn {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border: none;
+    color: white;
+}
+
+/* ریسپانسیو */
+@media (max-width: 768px) {
+    .summary-card {
+        margin-bottom: 15px;
+    }
+    
+    #items-table {
+        font-size: 12px;
+    }
+    
+    #items-table thead th,
+    #items-table tbody td {
+        padding: 8px 5px;
+    }
+    
+    .action-buttons .btn {
+        display: block;
+        width: 100%;
+        margin-bottom: 10px;
+        margin-left: 0 !important;
+        margin-right: 0 !important;
+    }
+}
+
+/* حالت چاپ */
+@media print {
+    .action-buttons,
+    #add-item-btn,
+    .remove-item-btn,
+    .qty-input {
+        display: none !important;
+    }
+    
+    .summary-section {
+        page-break-after: avoid;
+    }
+}
+

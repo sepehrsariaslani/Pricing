@@ -1,0 +1,117 @@
+{
+    "add_total_row": 1,
+    "columns": [],
+    "creation": "2024-03-20 10:00:00.000000",
+    "disable_prepared_report": 0,
+    "disabled": 0,
+    "docstatus": 0,
+    "doctype": "Report",
+    "idx": 0,
+    "is_standard": "Yes",
+    "modified": "2024-03-20 10:00:00.000000",
+    "modified_by": "Administrator",
+    "module": "Pricing",
+    "name": "Unified Pricing Report",
+    "owner": "Administrator",
+    "prepared_report": 0,
+    "ref_doctype": "Auto Price List",
+    "report_name": "Unified Pricing Report",
+    "report_type": "Script Report",
+    "roles": [
+        {
+            "role": "System Manager"
+        },
+        {
+            "role": "Accounts Manager"
+        },
+        {
+            "role": "Sales Manager"
+        }
+    ],
+    "filters": [
+        {
+            "fieldname": "auto_price_list",
+            "fieldtype": "Link",
+            "label": "لیست قیمت خودکار",
+            "options": "Auto Price List",
+            "width": 150
+        },
+        {
+            "fieldname": "item_group",
+            "fieldtype": "Link",
+            "label": "گروه کالا",
+            "options": "Item Group",
+            "width": 120
+        },
+        {
+            "fieldname": "brand",
+            "fieldtype": "Link",
+            "label": "برند",
+            "options": "Brand",
+            "width": 120
+        },
+        {
+            "fieldname": "from_date",
+            "fieldtype": "Date",
+            "label": "از تاریخ",
+            "width": 100
+        },
+        {
+            "fieldname": "to_date",
+            "fieldtype": "Date",
+            "label": "تا تاریخ",
+            "width": 100
+        },
+        {
+            "fieldname": "compare_with_price_list",
+            "fieldtype": "Link",
+            "label": "مقایسه با لیست قیمت",
+            "options": "Price List",
+            "width": 150
+        },
+        {
+            "fieldname": "min_profit_percentage",
+            "fieldtype": "Percent",
+            "label": "حداقل درصد سود",
+            "width": 100
+        },
+        {
+            "fieldname": "max_profit_percentage",
+            "fieldtype": "Percent",
+            "label": "حداکثر درصد سود",
+            "width": 100
+        },
+        {
+            "default": 1,
+            "fieldname": "show_cost_details",
+            "fieldtype": "Check",
+            "label": "نمایش جزئیات هزینه"
+        },
+        {
+            "default": 0,
+            "fieldname": "show_markup_details",
+            "fieldtype": "Check",
+            "label": "نمایش جزئیات افزایش قیمت"
+        },
+        {
+            "default": 0,
+            "fieldname": "show_commission_details",
+            "fieldtype": "Check",
+            "label": "نمایش جزئیات کمیسیون"
+        },
+        {
+            "default": 0,
+            "fieldname": "show_installment_details",
+            "fieldtype": "Check",
+            "label": "نمایش جزئیات قسط"
+        },
+        {
+            "default": "profit_distribution",
+            "fieldname": "chart_type",
+            "fieldtype": "Select",
+            "label": "نوع نمودار",
+            "options": "\nprofit_distribution\ncost_breakdown\ntop_profitable"
+        }
+    ]
+}
+

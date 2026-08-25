@@ -1,0 +1,136 @@
+{
+  "essential_buttons": [
+    {
+      "label": "محاسبه قیمت‌ها",
+      "method": "update_item_prices_with_details",
+      "group": null,
+      "icon": "calculator",
+      "description": "محاسبه قیمت‌های کالاها بر اساس تنظیمات"
+    },
+    {
+      "label": "نمایش داشبورد قیمت‌گذاری",
+      "function": "show_pricing_dashboard",
+      "group": null,
+      "icon": "dashboard",
+      "description": "نمایش داشبورد جامع قیمت‌گذاری"
+    }
+  ],
+  "advanced_buttons": [
+    {
+      "label": "بهینه‌سازی هوشمند",
+      "function": "ai_optimize_all_prices",
+      "group": "عملیات",
+      "icon": "brain",
+      "description": "بهینه‌سازی قیمت‌ها با استفاده از هوش مصنوعی",
+      "requires_items": true
+    },
+    {
+      "label": "تحلیل بازار",
+      "function": "show_market_analysis",
+      "group": "تحلیل‌ها",
+      "icon": "trending-up",
+      "description": "تحلیل وضعیت بازار و رقبا"
+    },
+    {
+      "label": "تحلیل فصلی",
+      "function": "show_seasonal_analysis",
+      "group": "تحلیل‌ها",
+      "icon": "calendar",
+      "description": "تحلیل تغییرات فصلی قیمت‌ها"
+    }
+  ],
+  "ai_buttons": [
+    {
+      "label": "بینش‌های ML",
+      "function": "show_ml_insights",
+      "group": "هوش مصنوعی",
+      "icon": "cpu",
+      "description": "نمایش بینش‌های یادگیری ماشین"
+    },
+    {
+      "label": "تحلیل پیشرفته رقبا",
+      "function": "show_advanced_competitor_analysis",
+      "group": "هوش مصنوعی",
+      "icon": "users",
+      "description": "تحلیل پیشرفته رقبا با AI"
+    },
+    {
+      "label": "پیشنهادات قیمت‌گذاری",
+      "function": "show_pricing_recommendations",
+      "group": "هوش مصنوعی",
+      "icon": "lightbulb",
+      "description": "پیشنهادات هوشمند قیمت‌گذاری"
+    }
+  ],
+  "data_buttons": [
+    {
+      "label": "ادغام داده‌های واقعی",
+      "function": "integrate_real_purchase_data",
+      "group": "داده‌ها",
+      "icon": "database",
+      "description": "ادغام داده‌های خرید واقعی"
+    },
+    {
+      "label": "تحلیل خرید",
+      "function": "show_purchase_analysis",
+      "group": "تحلیل‌ها",
+      "icon": "shopping-cart",
+      "description": "تحلیل داده‌های خرید"
+    },
+    {
+      "label": "بینش‌های پیش‌فاکتور",
+      "function": "show_quotation_insights",
+      "group": "تحلیل‌ها",
+      "icon": "file-text",
+      "description": "تحلیل داده‌های پیش‌فاکتور"
+    }
+  ],
+  "report_buttons": [
+    {
+      "label": "صادرات داده‌ها",
+      "function": "export_pricing_data",
+      "group": "گزارش‌ها",
+      "icon": "download",
+      "description": "صادرات داده‌های قیمت‌گذاری"
+    }
+  ],
+  "pricing_strategy_buttons": [
+    {
+      "label": "قیمت‌گذاری ترکیبی",
+      "function": "show_combined_pricing_strategies",
+      "group": "استراتژی‌ها",
+      "icon": "layers",
+      "description": "نمایش استراتژی‌های قیمت‌گذاری ترکیبی",
+      "controlled_by": "selected_price_type"
+    },
+    {
+      "label": "مقایسه استراتژی‌ها",
+      "function": "compare_combined_strategies",
+      "group": "استراتژی‌ها",
+      "icon": "bar-chart",
+      "description": "مقایسه استراتژی‌های مختلف قیمت‌گذاری",
+      "controlled_by": "selected_price_type"
+    },
+    {
+      "label": "اعمال قیمت‌گذاری ترکیبی",
+      "function": "apply_combined_pricing_strategies",
+      "group": "استراتژی‌ها",
+      "icon": "check",
+      "description": "اعمال استراتژی قیمت‌گذاری انتخابی",
+      "controlled_by": "selected_price_type"
+    }
+  ],
+  "button_display_rules": {
+    "selected_price_type": {
+      "combined_discount_installment": ["قیمت‌گذاری ترکیبی", "مقایسه استراتژی‌ها", "اعمال قیمت‌گذاری ترکیبی"],
+      "installment_only": ["قیمت‌گذاری ترکیبی"],
+      "discount_only": ["قیمت‌گذاری ترکیبی"],
+      "base_price": []
+    },
+    "user_role_restrictions": {
+      "System Manager": "all",
+      "Pricing Manager": ["essential_buttons", "advanced_buttons", "pricing_strategy_buttons"],
+      "Sales User": ["essential_buttons", "report_buttons"]
+    }
+  }
+}
